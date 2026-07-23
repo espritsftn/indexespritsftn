@@ -193,6 +193,33 @@
     box-shadow:0 8px 24px rgba(0,0,0,0.4); max-width:90vw; text-align:center;
   }
   .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+  @keyframes announceGlow{ 0%{background-position:0% 50%;} 50%{background-position:100% 50%;} 100%{background-position:0% 50%;} }
+
+  .status-dot{ width:9px; height:9px; border-radius:50%; display:inline-block; margin-right:5px; flex:none; }
+  .status-dot.online{ background:#2de2c0; box-shadow:0 0 6px #2de2c0; }
+  .status-dot.offline{ background:#565d80; }
+
+  #personalMsgOverlay{
+    position:fixed; inset:0; z-index:200; display:none; align-items:center; justify-content:center;
+    background:rgba(5,7,14,0.88); backdrop-filter: blur(6px); padding:24px; text-align:center;
+  }
+  #personalMsgOverlay .box{
+    background:linear-gradient(160deg, var(--panel), var(--panel-2)); border:2px solid var(--purple);
+    border-radius:20px; padding:32px 26px; max-width:400px; box-shadow:0 0 60px rgba(139,92,246,0.4);
+  }
+  #personalMsgOverlay .box h2{ font-size:24px; margin:0 0 12px; background:linear-gradient(90deg,var(--teal),var(--purple)); -webkit-background-clip:text; background-clip:text; color:transparent; }
+  #personalMsgOverlay .box p{ font-size:16px; line-height:1.4; margin:0 0 20px; }
+  #personalMsgOverlay .box button{ border:none; cursor:pointer; background:linear-gradient(90deg,var(--teal),#6ee7dc); color:#06131a; padding:10px 24px; border-radius:10px; font-weight:700; }
+
+  #screenFlash{ position:fixed; inset:0; z-index:199; pointer-events:none; display:none; }
+  @keyframes flashFade{ 0%{opacity:0.85;} 100%{opacity:0;} }
+  .flash-active{ display:block !important; animation: flashFade 0.9s ease forwards; }
+
+  @keyframes confettiFall{ 0%{ transform:translateY(-10vh) rotate(0deg); opacity:1; } 100%{ transform:translateY(110vh) rotate(360deg); opacity:0.9; } }
+  .confetti-piece{ position:fixed; top:0; font-size:22px; z-index:198; pointer-events:none; animation: confettiFall linear forwards; }
+
+  @keyframes shakeScreen{ 0%,100%{transform:translateX(0);} 20%{transform:translateX(-10px);} 40%{transform:translateX(10px);} 60%{transform:translateX(-8px);} 80%{transform:translateX(8px);} }
+  body.shake-active{ animation: shakeScreen 0.5s ease; }
 
   .modal-backdrop{
     position:fixed; inset:0; background:rgba(6,8,16,0.72); backdrop-filter: blur(3px);
@@ -285,8 +312,12 @@
   </div>
 </header>
 
-<div id="announceBanner" style="display:none; max-width:920px; margin:12px auto 0; padding:10px 16px; background:linear-gradient(90deg, rgba(245,198,75,0.16), rgba(255,111,165,0.12)); border:1px solid rgba(245,198,75,0.35); border-radius:10px; color:#ffe08a; font-size:12.5px; font-weight:600;">
-  📢 <span id="announceText"></span>
+<div id="announceBanner" style="display:none; max-width:920px; margin:16px auto 0; padding:18px 22px; background:linear-gradient(120deg, rgba(245,198,75,0.22), rgba(255,111,165,0.18), rgba(139,92,246,0.18)); background-size:200% 200%; animation:announceGlow 6s ease infinite; border:2px solid rgba(245,198,75,0.55); border-radius:16px; box-shadow:0 8px 30px rgba(245,198,75,0.15); display:flex; align-items:center; gap:14px;">
+  <div style="font-size:30px; flex:none;">📢</div>
+  <div>
+    <div style="font-size:10.5px; text-transform:uppercase; letter-spacing:0.12em; font-weight:700; color:var(--gold); margin-bottom:3px;">Annonce</div>
+    <div id="announceText" style="font-size:16px; font-weight:700; color:#fff; line-height:1.3;"></div>
+  </div>
 </div>
 
 <div class="toolbar">
@@ -310,7 +341,7 @@
   </div>
   <div class="action-row">
     <button class="ticket-btn" id="openTicketBtn" type="button">🎫 Créer un ticket</button>
-    <button class="admin-btn" id="myTicketsBtn" type="button">📋 Mes tickets</button>
+    <button class="admin-btn" id="myTicketsBtn" type="button">📨 Messages</button>
     <button class="admin-btn" id="openAdminBtn" type="button">🔑 Panel admin</button>
   </div>
 </div>
@@ -319,6 +350,7 @@
   <div class="action-row">
     <button class="admin-btn" id="playerSearchBtn" type="button">🔍 Chercher un joueur</button>
     <button class="admin-btn" id="myTradesBtn" type="button">🔄 Mes échanges</button>
+    <button class="admin-btn" id="suggestBtn" type="button">💡 Suggestion</button>
   </div>
 </div>
 
@@ -429,10 +461,10 @@
 
 <!-- Modale "Mes tickets" (côté joueur) -->
 <div class="modal-backdrop hidden" id="myTicketsModal">
-  <div class="modal" style="max-width:520px;">
-    <h2>📋 Mes tickets</h2>
-    <p class="hint">Le statut et la réponse de l'admin s'affichent ici dès qu'elle arrive.</p>
-    <div id="myTicketList"></div>
+  <div class="modal" style="max-width:540px;">
+    <h2>📨 Messages</h2>
+    <p class="hint">Réponses de l'admin, propositions d'échange et messages des autres joueurs.</p>
+    <div id="myTicketList" style="max-height:60vh; overflow-y:auto;"></div>
     <div class="modal-actions">
       <button class="btn-ghost" id="myTicketsClose" type="button">Fermer</button>
     </div>
@@ -448,6 +480,16 @@
   </div>
 </div>
 
+<!-- Écran de maintenance (bloquant pour les non-admins) -->
+<div class="modal-backdrop hidden" id="maintenanceGate">
+  <div class="modal" style="max-width:400px; text-align:center;">
+    <div style="font-size:44px; margin-bottom:8px;">🛠️</div>
+    <h2>Maintenance en cours</h2>
+    <p class="hint" id="maintenanceText" style="font-size:14px;">Le site revient bientôt, merci de ta patience !</p>
+    <button id="maintenanceAdminLink" type="button" style="margin-top:18px; background:none; border:none; color:var(--muted); font-size:11px; text-decoration:underline; cursor:pointer;">Accès admin</button>
+  </div>
+</div>
+
 <!-- Menu admin -->
 <div class="modal-backdrop hidden" id="adminMenuModal">
   <div class="modal" style="max-width:380px;">
@@ -459,6 +501,12 @@
       <button class="admin-btn" id="adminGoBans" type="button" style="width:100%; justify-content:flex-start;">⛔ Bannissements</button>
       <button class="admin-btn" id="adminGoSearch" type="button" style="width:100%; justify-content:flex-start;">🔍 Rechercher / modifier un joueur</button>
       <button class="admin-btn" id="adminGoDashboard" type="button" style="width:100%; justify-content:flex-start;">📊 Tableau de bord</button>
+      <button class="admin-btn" id="adminGoMaintenance" type="button" style="width:100%; justify-content:flex-start;">🛠️ Mode maintenance</button>
+      <button class="admin-btn" id="adminGoPlayers" type="button" style="width:100%; justify-content:flex-start;">👥 Joueurs inscrits</button>
+      <button class="admin-btn" id="adminGoRaffle" type="button" style="width:100%; justify-content:flex-start;">🎲 Tirage au sort</button>
+      <button class="admin-btn" id="adminGoBroadcast" type="button" style="width:100%; justify-content:flex-start;">📣 Message groupé</button>
+      <button class="admin-btn" id="adminGoSuggestions" type="button" style="width:100%; justify-content:flex-start;">💡 Suggestions</button>
+      <button class="admin-btn" id="adminGoLog" type="button" style="width:100%; justify-content:flex-start;">📜 Journal admin</button>
     </div>
     <div class="modal-actions">
       <button class="btn-ghost" id="adminMenuClose" type="button">Fermer</button>
@@ -534,7 +582,26 @@
   <div class="modal" style="max-width:520px;">
     <h2 id="playerModalTitle">Joueur</h2>
     <p class="hint" id="playerModalSub"></p>
-    <div id="playerCollection" style="max-height:340px; overflow-y:auto;"></div>
+    <div id="playerCollection" style="max-height:300px; overflow-y:auto;"></div>
+
+    <div id="playerActionRow" style="display:none; gap:8px; margin-top:14px; flex-wrap:wrap;">
+      <button class="ticket-btn" id="playerTradeBtn" type="button" style="flex:1; justify-content:center;">🔄 Échanger</button>
+      <button class="admin-btn" id="playerMsgBtn" type="button" style="flex:1; justify-content:center;">💬 Message</button>
+    </div>
+    <div id="adminPlayerActionRow" style="display:none; gap:8px; margin-top:10px; flex-wrap:wrap;">
+      <button class="admin-btn" id="playerPersonalMsgBtn" type="button" style="flex:1; justify-content:center; border-color:var(--purple) !important; color:var(--purple);">📩 Message perso</button>
+      <button class="admin-btn" id="playerEffectBtn" type="button" style="flex:1; justify-content:center; border-color:var(--gold) !important; color:var(--gold);">✨ Effet écran</button>
+    </div>
+    <div id="personalMsgComposeBlock" style="display:none; margin-top:10px;">
+      <input type="text" id="personalMsgInput" maxlength="200" placeholder="Message qui s'affichera en grand chez lui...">
+      <button class="btn-primary" id="personalMsgSendBtn" type="button" style="width:100%; margin-top:8px;">Envoyer</button>
+    </div>
+    <div id="effectChooseBlock" style="display:none; margin-top:10px; gap:8px; flex-wrap:wrap;">
+      <button class="pick-chip" id="effectConfetti" type="button" style="flex:1;">🎉 Confettis</button>
+      <button class="pick-chip" id="effectFlash" type="button" style="flex:1;">⚡ Flash</button>
+      <button class="pick-chip" id="effectShake" type="button" style="flex:1;">💥 Secousse</button>
+    </div>
+
     <div id="tradeProposeBlock" style="display:none; margin-top:14px; border-top:1px solid var(--line); padding-top:14px;">
       <p class="hint" style="margin-bottom:8px;">Proposer un échange :</p>
       <div class="field">
@@ -551,6 +618,15 @@
       </div>
       <button class="btn-primary" id="tradeSubmit" type="button" style="width:100%;">Envoyer la proposition</button>
     </div>
+
+    <div id="msgComposeBlock" style="display:none; margin-top:14px; border-top:1px solid var(--line); padding-top:14px;">
+      <p class="hint" style="margin-bottom:8px;">Envoyer un message :</p>
+      <div class="field">
+        <input type="text" id="playerMsgInput" maxlength="300" placeholder="Écris ton message...">
+      </div>
+      <button class="btn-primary" id="playerMsgSend" type="button" style="width:100%;">Envoyer</button>
+    </div>
+
     <div class="modal-actions">
       <button class="btn-ghost" id="playerModalClose" type="button">Fermer</button>
     </div>
@@ -579,10 +655,105 @@
   </div>
 </div>
 
+<!-- Mode maintenance (admin) -->
+<div class="modal-backdrop hidden" id="maintenanceModal">
+  <div class="modal">
+    <h2>🛠️ Mode maintenance</h2>
+    <p class="hint">Quand activé, le site est bloqué pour tout le monde sauf toi (via le code admin).</p>
+    <div class="field">
+      <label for="maintenanceMsgInput">Message affiché aux joueurs</label>
+      <input type="text" id="maintenanceMsgInput" maxlength="160" placeholder="Le site revient bientôt !">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="maintenanceBack" type="button">Retour</button>
+      <button class="btn-primary" id="maintenanceOn" type="button" style="background:linear-gradient(90deg,#ff6fa5,#c23f77); color:#fff;">Activer</button>
+    </div>
+    <button id="maintenanceOff" type="button" style="width:100%; margin-top:10px; border:1px solid var(--line); background:var(--panel-2); color:var(--teal); padding:10px; border-radius:9px; font-weight:700; cursor:pointer;">Désactiver la maintenance</button>
+  </div>
+</div>
+
+<!-- Joueurs inscrits (admin) -->
+<div class="modal-backdrop hidden" id="playersModal">
+  <div class="modal" style="max-width:480px;">
+    <h2>👥 Joueurs inscrits</h2>
+    <p class="hint">Clique un joueur pour ouvrir sa fiche.</p>
+    <div id="playersListContent" style="max-height:60vh; overflow-y:auto;"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="playersBack" type="button">Retour</button>
+    </div>
+  </div>
+</div>
+
+<!-- Tirage au sort (admin) -->
+<div class="modal-backdrop hidden" id="raffleModal">
+  <div class="modal" style="max-width:380px; text-align:center;">
+    <h2>🎲 Tirage au sort</h2>
+    <p class="hint">Tire un joueur inscrit au hasard.</p>
+    <div id="raffleResult" style="font-size:26px; font-weight:700; padding:24px 0; font-family:'Rajdhani',sans-serif;">?</div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="raffleBack" type="button">Retour</button>
+      <button class="btn-primary" id="raffleDraw" type="button">Tirer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Message groupé (admin) -->
+<div class="modal-backdrop hidden" id="broadcastModal">
+  <div class="modal">
+    <h2>📣 Message groupé</h2>
+    <p class="hint">Envoyé dans les Messages de tous les joueurs inscrits.</p>
+    <div class="field">
+      <input type="text" id="broadcastInput" maxlength="300" placeholder="Ton message à tout le monde...">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="broadcastBack" type="button">Retour</button>
+      <button class="btn-primary" id="broadcastSend" type="button">Envoyer à tous</button>
+    </div>
+  </div>
+</div>
+
+<!-- Suggestions -->
+<div class="modal-backdrop hidden" id="suggestionsModal">
+  <div class="modal" style="max-width:480px;">
+    <h2 id="suggestionsTitle">💡 Suggestions</h2>
+    <div id="suggestFormBlock" class="field" style="display:none;">
+      <label for="suggestInput">Ton idée</label>
+      <input type="text" id="suggestInput" maxlength="200" placeholder="Propose une amélioration...">
+      <button class="btn-primary" id="suggestSubmit" type="button" style="width:100%; margin-top:10px;">Envoyer</button>
+    </div>
+    <div id="suggestionsList" style="max-height:50vh; overflow-y:auto; margin-top:10px;"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="suggestionsBack" type="button">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Journal admin -->
+<div class="modal-backdrop hidden" id="adminLogModal">
+  <div class="modal" style="max-width:480px;">
+    <h2>📜 Journal admin</h2>
+    <div id="adminLogList" style="max-height:60vh; overflow-y:auto;"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="adminLogBack" type="button">Retour</button>
+    </div>
+  </div>
+</div>
+
+<!-- Overlays d'effets écran (côté joueur) -->
+<div id="personalMsgOverlay">
+  <div class="box">
+    <h2>📩 Message de l'admin</h2>
+    <p id="personalMsgText"></p>
+    <button id="personalMsgClose" type="button">OK</button>
+  </div>
+</div>
+<div id="screenFlash"></div>
+
 <script>
 
 const VARIANT_LABELS = { normal:"Normal", gold:"Or", gummy:"Gélifié", galaxy:"Galaxie", holofoil:"Holofoil" };
 const ADMIN_CODE = "285028";
+
 
 const SUPABASE_URL = "https://cgyknbjnumuxvvlpvopa.supabase.co";
 const SUPABASE_KEY = "sb_publishable_ZdN0TGUnsTlBqwsnbx0e8Q_XCEPz7k8";
@@ -621,6 +792,14 @@ const SPRITES = [
   { id:"burntpeanut", name:"Esprit Burnt Peanut", emoji:"🥜", rarity:"mythic", ability:"Chance de butin bonus, voire mythique, à l'élimination.", variants:["normal"] },
   { id:"vinijr", name:"Esprit Vini Jr.", emoji:"⚽", rarity:"mythic", ability:"Un sprint débloque un glissé qui blesse et booste cadence/rechargement.", variants:["normal"] },
   { id:"pollo", name:"Esprit Pollo", emoji:"🐔", rarity:"mythic", ability:"Régénère les boucliers de l'équipe après une élimination.", variants:["normal"] },
+  { id:"cube1", name:"Esprit Cube Ombre", emoji:"🟪", rarity:"epic", ability:"Esprit Cube — capacité liée au Cube.", variants:["normal","gold","gummy","galaxy"] },
+  { id:"cube2", name:"Esprit Cube Kevin", emoji:"⬛", rarity:"epic", ability:"Esprit Cube — capacité liée au Cube.", variants:["normal","gold","gummy","galaxy"] },
+  { id:"cube3", name:"Esprit Cube Cristal", emoji:"🔷", rarity:"legendary", ability:"Esprit Cube — capacité liée au Cube.", variants:["normal","gold","gummy","galaxy"] },
+  { id:"cube4", name:"Esprit Cube Corrompu", emoji:"🟣", rarity:"legendary", ability:"Esprit Cube — capacité liée au Cube.", variants:["normal","gold","gummy","galaxy"] },
+  { id:"cube5", name:"Esprit Cube Néant", emoji:"⚫", rarity:"epic", ability:"Esprit Cube — capacité liée au Cube.", variants:["normal","gold","gummy","galaxy"] },
+  { id:"cube6", name:"Esprit Cube Runique", emoji:"🔮", rarity:"legendary", ability:"Esprit Cube — capacité liée au Cube.", variants:["normal","gold","gummy","galaxy"] },
+  { id:"cube7", name:"Esprit Cube Fracturé", emoji:"💠", rarity:"mythic", ability:"Esprit Cube — capacité liée au Cube.", variants:["normal","gold","gummy","galaxy"] },
+  { id:"cube8", name:"Esprit Cube Origine", emoji:"🌀", rarity:"mythic", ability:"Esprit Cube — capacité liée au Cube.", variants:["normal","gold","gummy","galaxy"] },
 ];
 
 const RARITY_LABEL = { rare:"Rare", epic:"Épique", legendary:"Légendaire", mythic:"Mythique" };
@@ -1073,32 +1252,137 @@ async function openMyTickets(){
   list.innerHTML = '<div style="color:var(--muted); font-size:12px;">Chargement...</div>';
   document.getElementById('myTicketsModal').classList.remove('hidden');
 
-  const all = await loadTickets();
-  const mine = all.filter(t => t.fortnite && t.fortnite.toLowerCase() === profile.fortnite.toLowerCase());
-
-  if(mine.length === 0){
-    list.innerHTML = '<div style="color:var(--muted); font-size:12px; text-align:center; padding:20px 0;">Tu n\'as pas encore créé de ticket.</div>';
-    return;
-  }
+  const [allTickets, tradesRes, msgRes] = await Promise.all([
+    loadTickets(),
+    sb('trades?to_fortnite=eq.' + encodeURIComponent(profile.fortnite) + '&status=eq.pending&select=*&order=created_at.desc'),
+    sb('messages?or=(from_fortnite.eq.' + encodeURIComponent(profile.fortnite) + ',to_fortnite.eq.' + encodeURIComponent(profile.fortnite) + ')&select=*&order=created_at.asc')
+  ]);
+  const mine = allTickets.filter(t => t.fortnite && t.fortnite.toLowerCase() === profile.fortnite.toLowerCase());
+  const incomingTrades = tradesRes.ok ? await tradesRes.json() : [];
+  const allMessages = msgRes.ok ? await msgRes.json() : [];
 
   list.innerHTML = '';
-  mine.forEach(t => {
-    const item = document.createElement('div');
-    item.className = 'ticket-item';
-    const dateTxt = new Date(t.created_at).toLocaleString('fr-FR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
-    const espritsHtml = t.esprits.map(k => { const label = describeEspritKey(k); return label ? `<span>${label}</span>` : ''; }).join('');
-    item.innerHTML = `
-      <div class="th">
-        <div class="who">Ton ticket</div>
-        <span class="status-badge ${t.status === 'answered' ? 'answered' : 'open'}">${t.status === 'answered' ? 'Répondu' : 'En attente'}</span>
-      </div>
-      <div class="ticket-date">${dateTxt}</div>
-      <div class="ticket-esprits">${espritsHtml}</div>
-      ${t.message ? `<div style="font-size:12.5px; color:var(--text); margin-top:4px;"><strong>Ton message :</strong> "${t.message.replace(/</g,'&lt;')}"</div>` : ''}
-      ${t.response ? `<div class="existing" style="margin-top:8px;"><strong>Réponse de l'admin :</strong> ${t.response.replace(/</g,'&lt;')}</div>` : '<div style="font-size:12px; color:var(--muted); margin-top:8px;">Pas encore de réponse.</div>'}
-    `;
-    list.appendChild(item);
+
+  if(incomingTrades.length > 0){
+    const h = document.createElement('h2');
+    h.style.cssText = 'font-size:14px; margin:4px 0 8px;';
+    h.textContent = '🔄 Propositions d\'échange';
+    list.appendChild(h);
+    incomingTrades.forEach(t => {
+      const item = document.createElement('div');
+      item.className = 'ticket-item';
+      item.innerHTML = `
+        <div class="th"><div class="who">De ${t.from_fortnite}</div><span class="status-badge open">En attente</span></div>
+        <div style="font-size:12.5px; margin-top:4px;">Il offre : <strong>${describeEspritKey(t.offer_key)}</strong></div>
+        <div style="font-size:12.5px;">Il veut : <strong>${describeEspritKey(t.want_key)}</strong></div>
+        ${t.message ? `<div style="font-size:12px; color:var(--muted); margin-top:4px;">"${t.message.replace(/</g,'&lt;')}"</div>` : ''}
+      `;
+      const actions = document.createElement('div');
+      actions.style.cssText = 'display:flex; gap:8px; margin-top:8px;';
+      const acceptBtn = document.createElement('button');
+      acceptBtn.type='button'; acceptBtn.textContent='Accepter';
+      acceptBtn.style.cssText = 'flex:1; border:none; cursor:pointer; background:var(--teal); color:#06131a; padding:8px; border-radius:8px; font-weight:700; font-size:12px;';
+      const declineBtn = document.createElement('button');
+      declineBtn.type='button'; declineBtn.textContent='Refuser';
+      declineBtn.style.cssText = 'flex:1; border:1px solid var(--line); cursor:pointer; background:var(--panel-2); color:var(--muted); padding:8px; border-radius:8px; font-weight:700; font-size:12px;';
+      const respond = async (status) => {
+        acceptBtn.disabled = true; declineBtn.disabled = true;
+        const r = await sb('trades?id=eq.' + encodeURIComponent(t.id), { method:'PATCH', headers:{'Prefer':'return=minimal'}, body: JSON.stringify({status}) });
+        if(!r.ok){ showToast('⚠ Échec'); acceptBtn.disabled=false; declineBtn.disabled=false; return; }
+        showToast(status === 'accepted' ? '✓ Échange accepté — contactez-vous en message' : 'Échange refusé');
+        openMyTickets();
+      };
+      acceptBtn.addEventListener('click', () => respond('accepted'));
+      declineBtn.addEventListener('click', () => respond('declined'));
+      actions.appendChild(acceptBtn); actions.appendChild(declineBtn);
+      item.appendChild(actions);
+      list.appendChild(item);
+    });
+  }
+
+  if(mine.length > 0){
+    const h = document.createElement('h2');
+    h.style.cssText = 'font-size:14px; margin:16px 0 8px;';
+    h.textContent = '🎫 Tes tickets';
+    list.appendChild(h);
+    mine.forEach(t => {
+      const item = document.createElement('div');
+      item.className = 'ticket-item';
+      const dateTxt = new Date(t.created_at).toLocaleString('fr-FR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+      const espritsHtml = t.esprits.map(k => { const label = describeEspritKey(k); return label ? `<span>${label}</span>` : ''; }).join('');
+      item.innerHTML = `
+        <div class="th">
+          <div class="who">Ton ticket</div>
+          <span class="status-badge ${t.status === 'answered' ? 'answered' : 'open'}">${t.status === 'answered' ? 'Répondu' : 'En attente'}</span>
+        </div>
+        <div class="ticket-date">${dateTxt}</div>
+        <div class="ticket-esprits">${espritsHtml}</div>
+        ${t.message ? `<div style="font-size:12.5px; color:var(--text); margin-top:4px;"><strong>Ton message :</strong> "${t.message.replace(/</g,'&lt;')}"</div>` : ''}
+        ${t.response ? `<div class="existing" style="margin-top:8px;"><strong>Réponse de l'admin :</strong> ${t.response.replace(/</g,'&lt;')}</div>` : '<div style="font-size:12px; color:var(--muted); margin-top:8px;">Pas encore de réponse.</div>'}
+      `;
+      list.appendChild(item);
+    });
+  }
+
+  // Conversations : regroupe les messages directs par interlocuteur
+  const partners = {};
+  allMessages.forEach(m => {
+    const other = m.from_fortnite.toLowerCase() === profile.fortnite.toLowerCase() ? m.to_fortnite : m.from_fortnite;
+    if(!partners[other]) partners[other] = [];
+    partners[other].push(m);
   });
+  const partnerNames = Object.keys(partners);
+  if(partnerNames.length > 0){
+    const h = document.createElement('h2');
+    h.style.cssText = 'font-size:14px; margin:16px 0 8px;';
+    h.textContent = '💬 Conversations';
+    list.appendChild(h);
+    partnerNames.forEach(other => {
+      const thread = partners[other];
+      const block = document.createElement('div');
+      block.className = 'ticket-item';
+      const bubbles = thread.map(m => {
+        const mine2 = m.from_fortnite.toLowerCase() === profile.fortnite.toLowerCase();
+        return `<div style="margin:4px 0; text-align:${mine2?'right':'left'};">
+          <span style="display:inline-block; max-width:80%; padding:6px 10px; border-radius:10px; font-size:12.5px; background:${mine2?'var(--teal)':'var(--panel)'}; color:${mine2?'#06131a':'var(--text)'};">${m.content.replace(/</g,'&lt;')}</span>
+        </div>`;
+      }).join('');
+      block.innerHTML = `<div class="who" style="margin-bottom:6px;">${other}</div><div>${bubbles}</div>`;
+      const replyRow = document.createElement('div');
+      replyRow.style.cssText = 'display:flex; gap:6px; margin-top:8px;';
+      const input = document.createElement('input');
+      input.type = 'text'; input.placeholder = 'Répondre...'; input.maxLength = 300;
+      input.style.cssText = 'flex:1; background:var(--panel); border:1px solid var(--line); color:var(--text); padding:8px 10px; border-radius:8px; font-size:12.5px;';
+      const sendBtn = document.createElement('button');
+      sendBtn.type = 'button'; sendBtn.textContent = 'Envoyer';
+      sendBtn.style.cssText = 'border:none; cursor:pointer; background:var(--teal); color:#06131a; padding:8px 12px; border-radius:8px; font-weight:700; font-size:12px;';
+      sendBtn.addEventListener('click', async () => {
+        const val = input.value.trim();
+        if(!val) return;
+        sendBtn.disabled = true;
+        const ok = await sendMessage(other, val);
+        sendBtn.disabled = false;
+        if(ok){ input.value = ''; openMyTickets(); } else { showToast('⚠ Échec de l\'envoi'); }
+      });
+      replyRow.appendChild(input); replyRow.appendChild(sendBtn);
+      block.appendChild(replyRow);
+      list.appendChild(block);
+    });
+  }
+
+  if(incomingTrades.length === 0 && mine.length === 0 && partnerNames.length === 0){
+    list.innerHTML = '<div style="color:var(--muted); font-size:12px; text-align:center; padding:20px 0;">Rien pour l\'instant.</div>';
+  }
+}
+
+async function sendMessage(toFortnite, content){
+  try{
+    const res = await sb('messages', {
+      method:'POST', headers:{'Prefer':'return=minimal'},
+      body: JSON.stringify({ id:'m'+Date.now()+Math.floor(Math.random()*1000), from_fortnite: profile.fortnite, to_fortnite: toFortnite, content })
+    });
+    return res.ok;
+  }catch(e){ return false; }
 }
 
 // ---------- Admin ----------
@@ -1117,6 +1401,7 @@ document.getElementById('adminCodeSubmit').addEventListener('click', async () =>
   if(code !== ADMIN_CODE){ showToast('⚠ Code incorrect'); return; }
   isAdmin = true;
   document.getElementById('adminCodeModal').classList.add('hidden');
+  document.getElementById('maintenanceGate').classList.add('hidden');
   document.getElementById('adminMenuModal').classList.remove('hidden');
 });
 document.getElementById('adminMenuClose').addEventListener('click', () => {
@@ -1142,6 +1427,10 @@ document.getElementById('adminGoSearch').addEventListener('click', () => {
 document.getElementById('adminGoDashboard').addEventListener('click', () => {
   document.getElementById('adminMenuModal').classList.add('hidden');
   openDashboard();
+});
+document.getElementById('adminGoMaintenance').addEventListener('click', () => {
+  document.getElementById('adminMenuModal').classList.add('hidden');
+  openMaintenanceEditor();
 });
 
 function spriteById(id){ return SPRITES.find(s => s.id === id); }
@@ -1261,6 +1550,7 @@ document.getElementById('announceSave').addEventListener('click', async () => {
     });
     if(!res.ok){ const t = await res.text().catch(()=>''); showToast('⚠ Erreur (' + res.status + '): ' + t.slice(0,100)); btn.disabled=false; return; }
     showToast(msg ? '✓ Annonce publiée' : '✓ Annonce retirée');
+    logAdminAction('announcement', null, msg || '(retirée)');
     loadAnnouncement();
     document.getElementById('announceModal').classList.add('hidden');
     document.getElementById('adminMenuModal').classList.remove('hidden');
@@ -1308,6 +1598,7 @@ async function refreshBanList(){
           const r = await sb('bans?fortnite=eq.' + encodeURIComponent(b.fortnite), { method:'DELETE' });
           if(!r.ok){ showToast('⚠ Échec du débannissement'); unbanBtn.disabled = false; return; }
           showToast('✓ ' + b.fortnite + ' débanni');
+          logAdminAction('unban', b.fortnite, null);
           refreshBanList();
         }catch(e){ showToast('⚠ Erreur réseau'); unbanBtn.disabled = false; }
       });
@@ -1340,6 +1631,7 @@ document.getElementById('banSubmit').addEventListener('click', async () => {
     });
     if(!res.ok){ const t = await res.text().catch(()=>''); showToast('⚠ Erreur (' + res.status + '): ' + t.slice(0,100)); btn.disabled=false; return; }
     showToast('✓ ' + fn + ' banni');
+    logAdminAction('ban', fn, (days===0?'indéfini':days+'j') + (reason ? ' — ' + reason : ''));
     document.getElementById('banFortnite').value = '';
     document.getElementById('banReason').value = '';
     refreshBanList();
@@ -1371,7 +1663,7 @@ document.getElementById('searchSubmit').addEventListener('click', async () => {
   if(!q){ showToast('⚠ Tape un pseudo'); return; }
   results.innerHTML = '<div style="color:var(--muted); font-size:12px;">Recherche...</div>';
   try{
-    const res = await sb('profiles?or=(fortnite.ilike.*' + encodeURIComponent(q) + '*,discord.ilike.*' + encodeURIComponent(q) + '*)&select=fortnite,discord&limit=20');
+    const res = await sb('profiles?or=(fortnite.ilike.*' + encodeURIComponent(q) + '*,discord.ilike.*' + encodeURIComponent(q) + '*)&select=fortnite,discord,last_seen&limit=20');
     if(!res.ok){ results.innerHTML = '<div style="color:var(--muted); font-size:12px;">Erreur de recherche.</div>'; return; }
     const rows = await res.json();
     if(rows.length === 0){ results.innerHTML = '<div style="color:var(--muted); font-size:12px;">Aucun joueur trouvé.</div>'; return; }
@@ -1380,8 +1672,8 @@ document.getElementById('searchSubmit').addEventListener('click', async () => {
       const el = document.createElement('div');
       el.className = 'pick-chip';
       el.style.marginBottom = '8px';
-      el.innerHTML = `<span class="n"><strong>${p.fortnite}</strong> · Discord: ${p.discord || '—'}</span>`;
-      el.addEventListener('click', () => openPlayerProfile(p.fortnite, p.discord));
+      el.innerHTML = `${statusDotHtml(p.last_seen)}<span class="n"><strong>${p.fortnite}</strong> · Discord: ${p.discord || '—'}</span>`;
+      el.addEventListener('click', () => { searchFromAdmin = isAdmin; openPlayerProfile(p.fortnite, p.discord); });
       results.appendChild(el);
     });
   }catch(e){ results.innerHTML = '<div style="color:var(--muted); font-size:12px;">Erreur réseau.</div>'; }
@@ -1393,21 +1685,100 @@ async function openPlayerProfile(fortnite, discord){
   document.getElementById('playerModalSub').textContent = 'Discord: ' + (discord || '—');
   const collDiv = document.getElementById('playerCollection');
   collDiv.innerHTML = '<div style="color:var(--muted); font-size:12px;">Chargement...</div>';
+  document.getElementById('tradeProposeBlock').style.display = 'none';
+  document.getElementById('msgComposeBlock').style.display = 'none';
+  document.getElementById('personalMsgComposeBlock').style.display = 'none';
+  document.getElementById('effectChooseBlock').style.display = 'none';
+  document.getElementById('playerMsgInput').value = '';
+  document.getElementById('personalMsgInput').value = '';
   document.getElementById('playerModal').classList.remove('hidden');
 
   const owned2 = await loadProgressFor(fortnite);
   viewedPlayer = { fortnite, discord, owned: owned2 };
   renderPlayerCollection();
 
-  const tradeBlock = document.getElementById('tradeProposeBlock');
+  const actionRow = document.getElementById('playerActionRow');
   const isSelf = profile && profile.fortnite.toLowerCase() === fortnite.toLowerCase();
-  if(!isAdmin && !isSelf && profile){
-    tradeBlock.style.display = 'block';
+  if(!isSelf && profile){
+    actionRow.style.display = 'flex';
     fillTradeSelects();
   } else {
-    tradeBlock.style.display = 'none';
+    actionRow.style.display = 'none';
   }
+
+  const adminRow = document.getElementById('adminPlayerActionRow');
+  adminRow.style.display = (isAdmin && !isSelf) ? 'flex' : 'none';
 }
+
+document.getElementById('playerTradeBtn').addEventListener('click', () => {
+  const block = document.getElementById('tradeProposeBlock');
+  const isHidden = block.style.display === 'none';
+  block.style.display = isHidden ? 'block' : 'none';
+  document.getElementById('msgComposeBlock').style.display = 'none';
+});
+document.getElementById('playerMsgBtn').addEventListener('click', () => {
+  const block = document.getElementById('msgComposeBlock');
+  const isHidden = block.style.display === 'none';
+  block.style.display = isHidden ? 'block' : 'none';
+  document.getElementById('tradeProposeBlock').style.display = 'none';
+});
+document.getElementById('playerPersonalMsgBtn').addEventListener('click', () => {
+  const block = document.getElementById('personalMsgComposeBlock');
+  const isHidden = block.style.display === 'none';
+  block.style.display = isHidden ? 'block' : 'none';
+  document.getElementById('effectChooseBlock').style.display = 'none';
+});
+document.getElementById('playerEffectBtn').addEventListener('click', () => {
+  const block = document.getElementById('effectChooseBlock');
+  const isHidden = block.style.display === 'none';
+  block.style.display = isHidden ? 'flex' : 'none';
+  document.getElementById('personalMsgComposeBlock').style.display = 'none';
+});
+document.getElementById('personalMsgSendBtn').addEventListener('click', async () => {
+  const val = document.getElementById('personalMsgInput').value.trim();
+  if(!val){ showToast('⚠ Écris un message'); return; }
+  const btn = document.getElementById('personalMsgSendBtn');
+  btn.disabled = true;
+  const ok = await sendScreenEvent(viewedPlayer.fortnite, 'message', val);
+  btn.disabled = false;
+  if(!ok){ showToast('⚠ Échec de l\'envoi'); return; }
+  document.getElementById('personalMsgInput').value = '';
+  showToast('✓ Message perso envoyé à ' + viewedPlayer.fortnite);
+  logAdminAction('message_perso', viewedPlayer.fortnite, val);
+  document.getElementById('personalMsgComposeBlock').style.display = 'none';
+});
+['effectConfetti','effectFlash','effectShake'].forEach(id => {
+  document.getElementById(id).addEventListener('click', async () => {
+    const type = id === 'effectConfetti' ? 'confetti' : (id === 'effectFlash' ? 'flash' : 'shake');
+    const ok = await sendScreenEvent(viewedPlayer.fortnite, type, null);
+    if(!ok){ showToast('⚠ Échec de l\'envoi'); return; }
+    showToast('✓ Effet envoyé à ' + viewedPlayer.fortnite);
+    logAdminAction('effet_ecran', viewedPlayer.fortnite, type);
+    document.getElementById('effectChooseBlock').style.display = 'none';
+  });
+});
+async function sendScreenEvent(toFortnite, type, content){
+  try{
+    const res = await sb('screen_events', {
+      method:'POST', headers:{'Prefer':'return=minimal'},
+      body: JSON.stringify({ id:'se'+Date.now()+Math.floor(Math.random()*1000), to_fortnite: toFortnite, type, content, delivered:false })
+    });
+    return res.ok;
+  }catch(e){ return false; }
+}
+
+document.getElementById('playerMsgSend').addEventListener('click', async () => {
+  const val = document.getElementById('playerMsgInput').value.trim();
+  if(!val){ showToast('⚠ Écris un message'); return; }
+  const btn = document.getElementById('playerMsgSend');
+  btn.disabled = true;
+  const ok = await sendMessage(viewedPlayer.fortnite, val);
+  btn.disabled = false;
+  if(!ok){ showToast('⚠ Échec de l\'envoi'); return; }
+  document.getElementById('playerMsgInput').value = '';
+  showToast('✓ Message envoyé à ' + viewedPlayer.fortnite);
+  document.getElementById('msgComposeBlock').style.display = 'none';
+});
 
 function renderPlayerCollection(){
   const collDiv = document.getElementById('playerCollection');
@@ -1434,7 +1805,7 @@ function renderPlayerCollection(){
           renderPlayerCollection();
           const ok = await saveProgressForFortnite(viewedPlayer.fortnite, viewedPlayer.owned);
           if(!ok) showToast('⚠ Échec de la sauvegarde');
-          else showToast('✓ Modifié pour ' + viewedPlayer.fortnite);
+          else { showToast('✓ Modifié pour ' + viewedPlayer.fortnite); logAdminAction('attribution', viewedPlayer.fortnite, describeEspritKey(k)); }
           if(profile && profile.fortnite.toLowerCase() === viewedPlayer.fortnite.toLowerCase()){
             owned = viewedPlayer.owned; render();
           }
@@ -1635,6 +2006,322 @@ document.getElementById('dashboardBack').addEventListener('click', () => {
   document.getElementById('dashboardModal').classList.add('hidden');
   document.getElementById('adminMenuModal').classList.remove('hidden');
 });
+
+// ---------- Mode maintenance ----------
+async function checkMaintenance(){
+  try{
+    const res = await sb('settings?key=eq.maintenance&select=value');
+    if(!res.ok) return null;
+    const rows = await res.json();
+    if(rows.length === 0 || rows[0].value === 'off' || !rows[0].value) return null;
+    return rows[0].value; // message de maintenance
+  }catch(e){ return null; }
+}
+async function openMaintenanceEditor(){
+  document.getElementById('maintenanceMsgInput').value = '';
+  try{
+    const res = await sb('settings?key=eq.maintenance&select=value');
+    if(res.ok){
+      const rows = await res.json();
+      if(rows.length && rows[0].value && rows[0].value !== 'off') document.getElementById('maintenanceMsgInput').value = rows[0].value;
+    }
+  }catch(e){}
+  document.getElementById('maintenanceModal').classList.remove('hidden');
+}
+document.getElementById('maintenanceBack').addEventListener('click', () => {
+  document.getElementById('maintenanceModal').classList.add('hidden');
+  document.getElementById('adminMenuModal').classList.remove('hidden');
+});
+async function setMaintenance(value){
+  const res = await sb('settings?on_conflict=key', {
+    method:'POST',
+    headers:{ 'Prefer':'resolution=merge-duplicates,return=minimal' },
+    body: JSON.stringify({ key:'maintenance', value })
+  });
+  return res.ok;
+}
+document.getElementById('maintenanceOn').addEventListener('click', async () => {
+  const msg = document.getElementById('maintenanceMsgInput').value.trim() || 'Le site revient bientôt, merci de ta patience !';
+  const btn = document.getElementById('maintenanceOn');
+  btn.disabled = true;
+  const ok = await setMaintenance(msg);
+  btn.disabled = false;
+  if(!ok){ showToast('⚠ Échec de l\'activation'); return; }
+  showToast('✓ Maintenance activée');
+  logAdminAction('maintenance_on', null, msg);
+  document.getElementById('maintenanceModal').classList.add('hidden');
+  document.getElementById('adminMenuModal').classList.remove('hidden');
+});
+document.getElementById('maintenanceOff').addEventListener('click', async () => {
+  const btn = document.getElementById('maintenanceOff');
+  btn.disabled = true;
+  const ok = await setMaintenance('off');
+  btn.disabled = false;
+  if(!ok){ showToast('⚠ Échec de la désactivation'); return; }
+  showToast('✓ Maintenance désactivée');
+  logAdminAction('maintenance_off', null, null);
+  document.getElementById('maintenanceModal').classList.add('hidden');
+  document.getElementById('adminMenuModal').classList.remove('hidden');
+});
+document.getElementById('maintenanceAdminLink').addEventListener('click', () => {
+  document.getElementById('inputAdminCode').value = '';
+  document.getElementById('adminCodeModal').classList.remove('hidden');
+});
+
+// ---------- Journal admin ----------
+async function logAdminAction(action, target, detail){
+  try{
+    await sb('admin_log', {
+      method:'POST', headers:{'Prefer':'return=minimal'},
+      body: JSON.stringify({ id:'log'+Date.now()+Math.floor(Math.random()*1000), action, target: target||null, detail: detail||null })
+    });
+  }catch(e){ /* pas bloquant */ }
+}
+document.getElementById('adminGoLog').addEventListener('click', () => {
+  document.getElementById('adminMenuModal').classList.add('hidden');
+  openAdminLog();
+});
+document.getElementById('adminLogBack').addEventListener('click', () => {
+  document.getElementById('adminLogModal').classList.add('hidden');
+  document.getElementById('adminMenuModal').classList.remove('hidden');
+});
+async function openAdminLog(){
+  const list = document.getElementById('adminLogList');
+  list.innerHTML = '<div style="color:var(--muted); font-size:12px;">Chargement...</div>';
+  document.getElementById('adminLogModal').classList.remove('hidden');
+  try{
+    const res = await sb('admin_log?select=*&order=created_at.desc&limit=100');
+    if(!res.ok){ list.innerHTML = '<div style="color:var(--muted); font-size:12px;">Erreur de chargement.</div>'; return; }
+    const rows = await res.json();
+    if(rows.length === 0){ list.innerHTML = '<div style="color:var(--muted); font-size:12px; text-align:center; padding:20px 0;">Aucune action enregistrée.</div>'; return; }
+    list.innerHTML = '';
+    const ACTION_LABELS = { ban:'⛔ Bannissement', unban:'✓ Débannissement', attribution:'✏️ Attribution manuelle', announcement:'📢 Annonce modifiée', maintenance_on:'🛠️ Maintenance activée', maintenance_off:'🛠️ Maintenance désactivée', broadcast:'📣 Message groupé', message_perso:'📩 Message perso envoyé', effet_ecran:'✨ Effet écran envoyé', suggestion_status:'💡 Suggestion mise à jour' };
+    rows.forEach(r => {
+      const item = document.createElement('div');
+      item.className = 'ticket-item';
+      const dateTxt = new Date(r.created_at).toLocaleString('fr-FR', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+      item.innerHTML = `
+        <div class="th"><div class="who">${ACTION_LABELS[r.action] || r.action}</div><span class="ticket-date">${dateTxt}</span></div>
+        ${r.target ? `<div style="font-size:12.5px; margin-top:4px;">Cible : <strong>${r.target}</strong></div>` : ''}
+        ${r.detail ? `<div style="font-size:12px; color:var(--muted); margin-top:2px;">${r.detail.replace(/</g,'&lt;')}</div>` : ''}
+      `;
+      list.appendChild(item);
+    });
+  }catch(e){ list.innerHTML = '<div style="color:var(--muted); font-size:12px;">Erreur réseau.</div>'; }
+}
+
+// ---------- Présence en ligne ----------
+function isOnline(lastSeen){
+  if(!lastSeen) return false;
+  return (Date.now() - new Date(lastSeen).getTime()) < 60000; // actif dans la dernière minute
+}
+function statusDotHtml(lastSeen){
+  return `<span class="status-dot ${isOnline(lastSeen) ? 'online' : 'offline'}"></span>`;
+}
+
+// ---------- Joueurs inscrits (admin) ----------
+document.getElementById('adminGoPlayers').addEventListener('click', () => {
+  document.getElementById('adminMenuModal').classList.add('hidden');
+  openPlayersList();
+});
+document.getElementById('playersBack').addEventListener('click', () => {
+  document.getElementById('playersModal').classList.add('hidden');
+  document.getElementById('adminMenuModal').classList.remove('hidden');
+});
+async function openPlayersList(){
+  const list = document.getElementById('playersListContent');
+  list.innerHTML = '<div style="color:var(--muted); font-size:12px;">Chargement...</div>';
+  document.getElementById('playersModal').classList.remove('hidden');
+  try{
+    const res = await sb('profiles?select=fortnite,discord,last_seen&order=last_seen.desc');
+    if(!res.ok){ list.innerHTML = '<div style="color:var(--muted); font-size:12px;">Erreur de chargement.</div>'; return; }
+    const rows = await res.json();
+    if(rows.length === 0){ list.innerHTML = '<div style="color:var(--muted); font-size:12px;">Aucun joueur inscrit.</div>'; return; }
+    list.innerHTML = '';
+    rows.forEach(p => {
+      const el = document.createElement('div');
+      el.className = 'pick-chip';
+      el.style.marginBottom = '8px';
+      el.innerHTML = `${statusDotHtml(p.last_seen)}<span class="n"><strong>${p.fortnite}</strong> · Discord: ${p.discord || '—'}</span>`;
+      el.addEventListener('click', () => { document.getElementById('playersModal').classList.add('hidden'); searchFromAdmin = true; openPlayerProfile(p.fortnite, p.discord); });
+      list.appendChild(el);
+    });
+  }catch(e){ list.innerHTML = '<div style="color:var(--muted); font-size:12px;">Erreur réseau.</div>'; }
+}
+
+// ---------- Tirage au sort ----------
+document.getElementById('adminGoRaffle').addEventListener('click', () => {
+  document.getElementById('adminMenuModal').classList.add('hidden');
+  document.getElementById('raffleResult').textContent = '?';
+  document.getElementById('raffleModal').classList.remove('hidden');
+});
+document.getElementById('raffleBack').addEventListener('click', () => {
+  document.getElementById('raffleModal').classList.add('hidden');
+  document.getElementById('adminMenuModal').classList.remove('hidden');
+});
+document.getElementById('raffleDraw').addEventListener('click', async () => {
+  const result = document.getElementById('raffleResult');
+  result.textContent = '🎲...';
+  try{
+    const res = await sb('profiles?select=fortnite');
+    if(!res.ok){ result.textContent = 'Erreur'; return; }
+    const rows = await res.json();
+    if(rows.length === 0){ result.textContent = 'Aucun joueur'; return; }
+    const winner = rows[Math.floor(Math.random()*rows.length)];
+    result.textContent = '🏆 ' + winner.fortnite;
+    logAdminAction('tirage', winner.fortnite, 'Tirage au sort parmi ' + rows.length + ' joueurs');
+  }catch(e){ result.textContent = 'Erreur réseau'; }
+});
+
+// ---------- Message groupé ----------
+document.getElementById('adminGoBroadcast').addEventListener('click', () => {
+  document.getElementById('adminMenuModal').classList.add('hidden');
+  document.getElementById('broadcastInput').value = '';
+  document.getElementById('broadcastModal').classList.remove('hidden');
+});
+document.getElementById('broadcastBack').addEventListener('click', () => {
+  document.getElementById('broadcastModal').classList.add('hidden');
+  document.getElementById('adminMenuModal').classList.remove('hidden');
+});
+document.getElementById('broadcastSend').addEventListener('click', async () => {
+  const msg = document.getElementById('broadcastInput').value.trim();
+  if(!msg){ showToast('⚠ Écris un message'); return; }
+  const btn = document.getElementById('broadcastSend');
+  btn.disabled = true;
+  try{
+    const res = await sb('profiles?select=fortnite');
+    if(!res.ok){ showToast('⚠ Erreur de chargement des joueurs'); btn.disabled=false; return; }
+    const rows = await res.json();
+    const batch = rows.map(p => ({ id:'m'+Date.now()+Math.floor(Math.random()*100000), from_fortnite:'Admin', to_fortnite:p.fortnite, content: msg }));
+    const sendRes = await sb('messages', { method:'POST', headers:{'Prefer':'return=minimal'}, body: JSON.stringify(batch) });
+    if(!sendRes.ok){ const t = await sendRes.text().catch(()=>''); showToast('⚠ Erreur (' + sendRes.status + '): ' + t.slice(0,100)); btn.disabled=false; return; }
+    showToast('✓ Envoyé à ' + rows.length + ' joueurs');
+    logAdminAction('broadcast', null, msg + ' (→ ' + rows.length + ' joueurs)');
+    document.getElementById('broadcastModal').classList.add('hidden');
+    document.getElementById('adminMenuModal').classList.remove('hidden');
+  }catch(e){ showToast('⚠ Erreur réseau'); }
+  btn.disabled = false;
+});
+
+// ---------- Suggestions ----------
+document.getElementById('suggestBtn').addEventListener('click', () => {
+  if(!profile){ showToast('⚠ Connecte-toi d\'abord'); return; }
+  openSuggestions(false);
+});
+document.getElementById('adminGoSuggestions').addEventListener('click', () => {
+  document.getElementById('adminMenuModal').classList.add('hidden');
+  openSuggestions(true);
+});
+document.getElementById('suggestionsBack').addEventListener('click', () => {
+  document.getElementById('suggestionsModal').classList.add('hidden');
+  if(isAdmin) document.getElementById('adminMenuModal').classList.remove('hidden');
+});
+async function openSuggestions(adminMode){
+  document.getElementById('suggestionsTitle').textContent = adminMode ? '💡 Suggestions des joueurs' : '💡 Boîte à suggestions';
+  document.getElementById('suggestFormBlock').style.display = adminMode ? 'none' : 'block';
+  document.getElementById('suggestInput').value = '';
+  const list = document.getElementById('suggestionsList');
+  list.innerHTML = '<div style="color:var(--muted); font-size:12px;">Chargement...</div>';
+  document.getElementById('suggestionsModal').classList.remove('hidden');
+  try{
+    const query = adminMode ? 'suggestions?select=*&order=created_at.desc' : 'suggestions?fortnite=eq.' + encodeURIComponent(profile.fortnite) + '&select=*&order=created_at.desc';
+    const res = await sb(query);
+    if(!res.ok){ list.innerHTML = '<div style="color:var(--muted); font-size:12px;">Erreur de chargement.</div>'; return; }
+    const rows = await res.json();
+    if(rows.length === 0){ list.innerHTML = '<div style="color:var(--muted); font-size:12px; text-align:center; padding:16px 0;">' + (adminMode ? 'Aucune suggestion pour l\'instant.' : 'Tu n\'as pas encore envoyé de suggestion.') + '</div>'; return; }
+    list.innerHTML = '';
+    const STATUS_LABEL = { nouvelle:'Nouvelle', 'en cours':'En cours', faite:'Faite' };
+    rows.forEach(s => {
+      const item = document.createElement('div');
+      item.className = 'ticket-item';
+      item.innerHTML = `
+        <div class="th"><div class="who">${adminMode ? s.fortnite : 'Ta suggestion'}</div><span class="status-badge ${s.status==='faite'?'answered':'open'}">${STATUS_LABEL[s.status]||s.status}</span></div>
+        <div style="font-size:12.5px; margin-top:4px;">${s.content.replace(/</g,'&lt;')}</div>
+      `;
+      if(adminMode){
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex; gap:6px; margin-top:8px;';
+        ['nouvelle','en cours','faite'].forEach(st => {
+          const b = document.createElement('button');
+          b.type='button'; b.textContent = STATUS_LABEL[st];
+          b.style.cssText = 'flex:1; border:1px solid var(--line); cursor:pointer; background:' + (s.status===st?'var(--teal)':'var(--panel-2)') + '; color:' + (s.status===st?'#06131a':'var(--muted)') + '; padding:6px; border-radius:7px; font-size:11px; font-weight:700;';
+          b.addEventListener('click', async () => {
+            const r = await sb('suggestions?id=eq.' + encodeURIComponent(s.id), { method:'PATCH', headers:{'Prefer':'return=minimal'}, body: JSON.stringify({status:st}) });
+            if(!r.ok){ showToast('⚠ Échec'); return; }
+            logAdminAction('suggestion_status', s.fortnite, s.content.slice(0,50) + ' → ' + st);
+            openSuggestions(true);
+          });
+          row.appendChild(b);
+        });
+        item.appendChild(row);
+      }
+      list.appendChild(item);
+    });
+  }catch(e){ list.innerHTML = '<div style="color:var(--muted); font-size:12px;">Erreur réseau.</div>'; }
+}
+document.getElementById('suggestSubmit').addEventListener('click', async () => {
+  const val = document.getElementById('suggestInput').value.trim();
+  if(!val){ showToast('⚠ Écris ton idée'); return; }
+  const btn = document.getElementById('suggestSubmit');
+  btn.disabled = true;
+  try{
+    const res = await sb('suggestions', {
+      method:'POST', headers:{'Prefer':'return=minimal'},
+      body: JSON.stringify({ id:'sg'+Date.now()+Math.floor(Math.random()*1000), fortnite: profile.fortnite, content: val, status:'nouvelle' })
+    });
+    if(!res.ok){ showToast('⚠ Échec de l\'envoi'); btn.disabled=false; return; }
+    showToast('✓ Suggestion envoyée, merci !');
+    document.getElementById('suggestInput').value = '';
+    openSuggestions(false);
+  }catch(e){ showToast('⚠ Erreur réseau'); }
+  btn.disabled = false;
+});
+
+// ---------- Réception des effets écran / message perso (côté joueur) ----------
+function launchConfetti(){
+  const emojis = ['🎉','✨','🎊','⭐','💫'];
+  for(let i=0;i<40;i++){
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+    piece.style.left = Math.random()*100 + 'vw';
+    piece.style.animationDuration = (2 + Math.random()*2) + 's';
+    piece.style.fontSize = (16 + Math.random()*16) + 'px';
+    document.body.appendChild(piece);
+    setTimeout(() => piece.remove(), 4200);
+  }
+}
+function launchFlash(){
+  const el = document.getElementById('screenFlash');
+  el.style.background = '#ffffff';
+  el.classList.remove('flash-active'); void el.offsetWidth; el.classList.add('flash-active');
+  setTimeout(() => el.classList.remove('flash-active'), 900);
+}
+function launchShake(){
+  document.body.classList.remove('shake-active'); void document.body.offsetWidth; document.body.classList.add('shake-active');
+  setTimeout(() => document.body.classList.remove('shake-active'), 500);
+}
+document.getElementById('personalMsgClose').addEventListener('click', () => {
+  document.getElementById('personalMsgOverlay').style.display = 'none';
+});
+async function checkScreenEvents(){
+  if(!profile || !profile.fortnite) return;
+  try{
+    const res = await sb('screen_events?to_fortnite=eq.' + encodeURIComponent(profile.fortnite) + '&delivered=eq.false&select=*&order=created_at.asc');
+    if(!res.ok) return;
+    const events = await res.json();
+    if(events.length === 0) return;
+    for(const ev of events){
+      if(ev.type === 'message'){
+        document.getElementById('personalMsgText').textContent = ev.content || '';
+        document.getElementById('personalMsgOverlay').style.display = 'flex';
+      } else if(ev.type === 'confetti'){ launchConfetti(); }
+      else if(ev.type === 'flash'){ launchFlash(); }
+      else if(ev.type === 'shake'){ launchShake(); }
+      await sb('screen_events?id=eq.' + encodeURIComponent(ev.id), { method:'PATCH', headers:{'Prefer':'return=minimal'}, body: JSON.stringify({delivered:true}) });
+    }
+  }catch(e){ /* pas bloquant */ }
+}
 
 // ---------- Export image (belle version) ----------
 function roundRect(ctx, x, y, w, h, r){
@@ -1888,11 +2575,54 @@ document.getElementById('downloadBtn').addEventListener('click', downloadMissing
 updateProfileChip();
 render();
 loadAnnouncement();
-tryRestoreSession().then(restored => {
-  if(!restored){
-    document.getElementById('authGate').classList.remove('hidden');
+checkMaintenance().then(maintenanceMsg => {
+  if(maintenanceMsg){
+    document.getElementById('maintenanceText').textContent = maintenanceMsg;
+    document.getElementById('maintenanceGate').classList.remove('hidden');
+    return; // bloque l'accès normal ; seul le code admin (bouton "Accès admin") débloque
   }
+  tryRestoreSession().then(restored => {
+    if(!restored){
+      document.getElementById('authGate').classList.remove('hidden');
+    }
+  });
 });
+
+// Vérification périodique : bannissement, maintenance, annonce — sans avoir besoin de recharger la page
+setInterval(async () => {
+  // Annonce : toujours à jour
+  loadAnnouncement();
+
+  // Maintenance : si activée entre-temps et qu'on n'est pas admin, on bloque immédiatement
+  if(!isAdmin){
+    const maintenanceMsg = await checkMaintenance();
+    if(maintenanceMsg && document.getElementById('maintenanceGate').classList.contains('hidden')){
+      document.getElementById('maintenanceText').textContent = maintenanceMsg;
+      document.getElementById('maintenanceGate').classList.remove('hidden');
+    } else if(!maintenanceMsg && !document.getElementById('maintenanceGate').classList.contains('hidden')){
+      document.getElementById('maintenanceGate').classList.add('hidden');
+    }
+  }
+
+  // Bannissement : si le joueur connecté vient d'être banni, on le déconnecte et on affiche l'écran
+  if(profile && profile.fortnite){
+    const ban = await checkBan(profile.fortnite);
+    if(ban){
+      try{ localStorage.removeItem('grimoire_token'); }catch(e){}
+      accessToken = null;
+      profile = null;
+      owned = {};
+      updateProfileChip();
+      render();
+      showBanScreen(ban);
+      return;
+    }
+    // Présence : garde le compte marqué "en ligne"
+    upsertProfile(profile.fortnite, profile.discord);
+    // Messages perso / effets envoyés par l'admin
+    checkScreenEvents();
+  }
+}, 15000);
 </script>
 </body>
 </html>
