@@ -1,0 +1,1898 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grimoire des Esprits — Suivi de collection</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+  :root{
+    --bg: #0a0d16;
+    --panel: #12172a;
+    --panel-2: #171d34;
+    --line: #262e4a;
+    --text: #e8eaf6;
+    --muted: #8a90b4;
+    --teal: #2de2c0;
+    --purple: #8b5cf6;
+    --gold: #f5c64b;
+    --gummy: #ff6fa5;
+    --galaxy1: #7c3aed;
+    --galaxy2: #2f6bff;
+    --holo: #45f0e6;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:
+      radial-gradient(1200px 600px at 15% -10%, rgba(139,92,246,0.16), transparent 60%),
+      radial-gradient(900px 500px at 100% 0%, rgba(45,226,192,0.10), transparent 55%),
+      var(--bg);
+    color:var(--text);
+    font-family:'Inter', sans-serif;
+    min-height:100vh;
+    padding-bottom:60px;
+  }
+  h1,h2,.display{font-family:'Rajdhani', sans-serif; letter-spacing:0.02em;}
+
+  header{
+    padding:22px 16px 18px;
+    position:sticky; top:0; z-index:20;
+    background:linear-gradient(180deg, rgba(10,13,22,0.97), rgba(10,13,22,0.86));
+    backdrop-filter: blur(8px);
+    border-bottom:1px solid var(--line);
+  }
+  .eyebrow{
+    font-size:11px; text-transform:uppercase; letter-spacing:0.18em;
+    color:var(--teal); font-weight:600; margin-bottom:4px;
+  }
+  .top-row{ display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+  header h1{
+    font-size:26px; font-weight:700; margin:0 0 2px 0;
+    background:linear-gradient(90deg,#fff, var(--teal) 60%, var(--purple));
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  header p.sub{margin:0 0 16px 0; color:var(--muted); font-size:13px;}
+
+  .profile-chip{
+    display:flex; align-items:center; gap:8px; background:var(--panel); border:1px solid var(--line);
+    border-radius:20px; padding:6px 12px 6px 6px; cursor:pointer; flex:none;
+  }
+  .profile-chip .avatar{
+    width:26px; height:26px; border-radius:50%; background:linear-gradient(135deg, var(--teal), var(--purple));
+    display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:#06131a;
+  }
+  .profile-chip .txt{ font-size:11px; line-height:1.2; }
+  .profile-chip .txt .p1{ font-weight:700; color:var(--text); }
+  .profile-chip .txt .p2{ color:var(--muted); }
+
+  .progress-wrap{display:flex; align-items:center; gap:14px;}
+  .orb{
+    width:56px; height:56px; border-radius:50%; flex:none; position:relative;
+    background:conic-gradient(var(--teal) calc(var(--pct,0)*1%), var(--line) 0);
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 0 18px rgba(45,226,192,0.25);
+    transition: background 0.3s ease;
+  }
+  .orb::before{
+    content:""; position:absolute; inset:5px; border-radius:50%; background:var(--panel);
+  }
+  .orb span{position:relative; font-family:'Rajdhani',sans-serif; font-weight:700; font-size:13px;}
+
+  .bar-track{flex:1; height:10px; border-radius:6px; background:var(--panel-2); overflow:hidden; border:1px solid var(--line);}
+  .bar-fill{height:100%; border-radius:6px; background:linear-gradient(90deg, var(--teal), var(--purple)); transition:width .35s ease;}
+  .count-text{font-size:12px; color:var(--muted); white-space:nowrap; font-variant-numeric:tabular-nums;}
+
+  .toolbar{
+    max-width:920px; margin:14px auto 0; padding:0 16px;
+    display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between;
+  }
+  .filters{display:flex; gap:6px; flex-wrap:wrap;}
+  .filter-btn{
+    border:1px solid var(--line); background:var(--panel); color:var(--muted);
+    padding:6px 12px; border-radius:20px; font-size:12px; cursor:pointer; font-weight:600;
+    transition: all .15s ease;
+  }
+  .filter-btn:hover{ border-color:var(--teal); color:var(--text); }
+  .filter-btn.active{ color:var(--bg); background:var(--teal); border-color:var(--teal); }
+
+  .rarity-filters{display:flex; gap:6px; flex-wrap:wrap;}
+  .rf-btn{
+    border:1px solid var(--line); background:transparent; color:var(--muted);
+    padding:5px 10px; border-radius:20px; font-size:11px; cursor:pointer; font-weight:600;
+  }
+  .rf-btn.active{ border-color:var(--purple); color:var(--purple); background:rgba(139,92,246,0.12); }
+
+  .action-row{ display:flex; gap:8px; flex-wrap:wrap; }
+  .dl-btn, .ticket-btn, .admin-btn{
+    border:none; cursor:pointer; padding:9px 16px; border-radius:10px; font-weight:700;
+    font-size:13px; display:flex; align-items:center; gap:6px;
+  }
+  .dl-btn{ color:#06131a; background:linear-gradient(90deg, var(--teal), #6ee7dc); box-shadow:0 4px 14px rgba(45,226,192,0.25); }
+  .ticket-btn{ color:#fff; background:linear-gradient(90deg, var(--purple), #b98cff); box-shadow:0 4px 14px rgba(139,92,246,0.25); }
+  .admin-btn{ color:var(--muted); background:var(--panel); border:1px solid var(--line) !important; }
+  .dl-btn:active, .ticket-btn:active, .admin-btn:active{transform:translateY(1px) scale(0.98);}
+
+  main{max-width:920px; margin:18px auto 0; padding:0 16px; display:grid; gap:12px;}
+
+  .card{
+    background:var(--panel); border:1px solid var(--line); border-radius:14px;
+    padding:14px; display:flex; flex-direction:column; gap:10px;
+  }
+  .card-top{display:flex; align-items:center; gap:12px;}
+  .icon-badge{
+    width:46px; height:46px; border-radius:12px; flex:none;
+    display:flex; align-items:center; justify-content:center; font-size:22px;
+    background:var(--panel-2); border:1px solid var(--line);
+  }
+  .card-title{flex:1; min-width:0;}
+  .card-title .name{font-family:'Rajdhani',sans-serif; font-weight:700; font-size:17px; line-height:1.1;}
+  .card-title .ability{font-size:11px; color:var(--muted); margin-top:2px; line-height:1.3;}
+  .rarity{
+    display:inline-block; margin-top:3px; font-size:10px; font-weight:700; letter-spacing:0.06em;
+    text-transform:uppercase; padding:2px 8px; border-radius:5px;
+  }
+  .rarity.rare{ color:#9fb4ff; background:rgba(122,150,255,0.14); }
+  .rarity.epic{ color:#c9a2ff; background:rgba(139,92,246,0.16); }
+  .rarity.legendary{ color:#ffb84d; background:rgba(255,184,77,0.16); }
+  .rarity.mythic{ color:#ff8ba1; background:rgba(255,90,120,0.16); }
+
+  .card-count{font-size:11px; color:var(--muted); white-space:nowrap; font-variant-numeric:tabular-nums;}
+
+  .chips{display:flex; flex-wrap:wrap; gap:8px;}
+  .chip{
+    border-radius:9px; padding:8px 10px; font-size:12px; font-weight:600; cursor:pointer;
+    border:1px solid var(--line); background:var(--panel-2); color:var(--muted);
+    display:flex; align-items:center; gap:6px; user-select:none;
+    transition: all .12s ease;
+  }
+  .chip:hover{ border-color:#454f78; }
+  .chip .box{
+    width:15px; height:15px; border-radius:4px; border:1.5px solid var(--muted);
+    display:flex; align-items:center; justify-content:center; font-size:10px; flex:none;
+  }
+  .chip.checked{ color:#fff; border-color:transparent; }
+  .chip.checked .box{ background:rgba(255,255,255,0.25); border-color:transparent; color:#fff;}
+  .chip[data-variant="normal"].checked{ background:#3a4266; }
+  .chip[data-variant="gold"].checked{ background:linear-gradient(120deg, var(--gold), #b98a1d); color:#2a1c00;}
+  .chip[data-variant="gold"].checked .box{color:#2a1c00;}
+  .chip[data-variant="gummy"].checked{ background:linear-gradient(120deg, var(--gummy), #c23f77);}
+  .chip[data-variant="galaxy"].checked{ background:linear-gradient(120deg, var(--galaxy1), var(--galaxy2));}
+  .chip[data-variant="holofoil"].checked{ background:linear-gradient(120deg, var(--holo), #2fa79e); color:#04211f;}
+  .chip[data-variant="holofoil"].checked .box{color:#04211f;}
+
+  .pick-chip{
+    border-radius:12px; padding:10px 12px; font-size:13px; font-weight:600; cursor:pointer;
+    border:1px solid var(--line); background:var(--panel-2); color:var(--text);
+    display:flex; align-items:center; gap:8px; user-select:none;
+  }
+  .pick-chip.selected{ border-color:var(--purple); background:rgba(139,92,246,0.16); }
+  .pick-chip .n{ flex:1; }
+
+  .pick-block{ padding:8px 0; border-bottom:1px solid var(--line); }
+  .pick-block:last-child{ border-bottom:none; }
+  .pick-title{ font-size:13px; font-weight:700; margin-bottom:6px; display:flex; align-items:center; gap:6px; }
+  .pick-variants{ display:flex; flex-wrap:wrap; gap:6px; }
+  .pick-vchip{
+    border-radius:8px; padding:6px 10px; font-size:11.5px; font-weight:600; cursor:pointer;
+    border:1px solid var(--line); background:var(--panel); color:var(--muted); user-select:none;
+  }
+  .pick-vchip.selected{ border-color:var(--purple); background:var(--purple); color:#fff; }
+
+  footer{
+    max-width:920px; margin:26px auto 0; padding:14px 16px; color:var(--muted); font-size:11.5px;
+    border-top:1px solid var(--line);
+  }
+  .disclaimer{opacity:0.8;}
+  .toast{
+    position:fixed; bottom:18px; left:50%; transform:translateX(-50%) translateY(20px);
+    background:var(--panel-2); border:1px solid var(--line); color:var(--text);
+    padding:10px 16px; border-radius:10px; font-size:12.5px; font-weight:600;
+    opacity:0; pointer-events:none; transition: all .25s ease; z-index:50;
+    box-shadow:0 8px 24px rgba(0,0,0,0.4); max-width:90vw; text-align:center;
+  }
+  .toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+  .modal-backdrop{
+    position:fixed; inset:0; background:rgba(6,8,16,0.72); backdrop-filter: blur(3px);
+    display:flex; align-items:center; justify-content:center; z-index:100; padding:16px; overflow-y:auto;
+  }
+  .modal-backdrop.hidden{ display:none; }
+  .modal{
+    background:var(--panel); border:1px solid var(--line); border-radius:16px;
+    padding:22px; width:100%; max-width:420px; box-shadow:0 20px 60px rgba(0,0,0,0.5);
+    max-height:88vh; overflow-y:auto;
+  }
+  .modal h2{ margin:0 0 4px 0; font-size:20px; }
+  .modal p.hint{ margin:0 0 16px 0; color:var(--muted); font-size:12.5px; line-height:1.4; }
+  .field{ margin-bottom:14px; }
+  .field label{ display:block; font-size:12px; color:var(--muted); margin-bottom:6px; font-weight:600; }
+  .field input{
+    width:100%; background:var(--panel-2); border:1px solid var(--line); color:var(--text);
+    padding:10px 12px; border-radius:9px; font-size:14px; font-family:inherit;
+  }
+  .field input:focus{ outline:none; border-color:var(--teal); }
+  .modal-actions{ display:flex; gap:8px; margin-top:18px; }
+  .modal-actions button{
+    flex:1; border:none; cursor:pointer; padding:10px; border-radius:9px; font-weight:700; font-size:13px;
+  }
+  .btn-primary{ background:linear-gradient(90deg, var(--teal), #6ee7dc); color:#06131a; }
+  .btn-ghost{ background:var(--panel-2); color:var(--muted); border:1px solid var(--line) !important; }
+  .pick-grid{ display:block; max-height:340px; overflow-y:auto; margin-bottom:6px; padding-right:2px;}
+  .pick-count{ font-size:12px; color:var(--muted); margin-bottom:10px; }
+
+  .ticket-item{
+    background:var(--panel-2); border:1px solid var(--line); border-radius:12px; padding:12px; margin-bottom:10px;
+  }
+  .ticket-item .th{ display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:6px;}
+  .ticket-item .who{ font-weight:700; font-size:13.5px; }
+  .ticket-item .who .disc{ color:var(--muted); font-weight:500; font-size:11.5px; }
+  .status-badge{ font-size:10px; font-weight:700; padding:3px 8px; border-radius:6px; text-transform:uppercase; }
+  .status-badge.open{ background:rgba(245,198,75,0.16); color:var(--gold); }
+  .status-badge.answered{ background:rgba(45,226,192,0.16); color:var(--teal); }
+  .ticket-esprits{ display:flex; gap:6px; flex-wrap:wrap; margin:6px 0; }
+  .ticket-esprits span{ background:var(--panel); border:1px solid var(--line); border-radius:7px; padding:4px 8px; font-size:11.5px; }
+  .ticket-reply{ margin-top:8px; }
+  .ticket-reply textarea{
+    width:100%; background:var(--panel); border:1px solid var(--line); color:var(--text);
+    padding:8px 10px; border-radius:8px; font-family:inherit; font-size:12.5px; min-height:56px; resize:vertical;
+  }
+  .ticket-reply button{
+    margin-top:6px; border:none; cursor:pointer; background:linear-gradient(90deg, var(--teal), #6ee7dc);
+    color:#06131a; padding:7px 14px; border-radius:8px; font-weight:700; font-size:12px;
+  }
+  .ticket-reply .existing{ font-size:12px; color:var(--text); background:rgba(45,226,192,0.08); padding:8px; border-radius:8px; margin-top:6px;}
+  .ticket-date{ font-size:10.5px; color:var(--muted); }
+
+  .auth-tabs{ display:flex; gap:4px; background:var(--panel-2); border-radius:10px; padding:4px; }
+  .auth-tab{
+    flex:1; border:none; background:transparent; color:var(--muted); font-weight:700; font-size:12.5px;
+    padding:8px; border-radius:8px; cursor:pointer;
+  }
+  .auth-tab.active{ background:var(--teal); color:#06131a; }
+
+  @media (max-width:480px){
+    header h1{font-size:22px;}
+    .icon-badge{width:40px; height:40px; font-size:19px;}
+    .pick-grid{ grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="top-row">
+    <div>
+      <div class="eyebrow">Suivi de collection · non officiel</div>
+      <h1>Grimoire des Esprits</h1>
+    </div>
+    <div class="profile-chip" id="profileChip">
+      <div class="avatar" id="profileAvatar">?</div>
+      <div class="txt">
+        <div class="p1" id="profileP1">Se connecter</div>
+        <div class="p2" id="profileP2">pseudo Fortnite · Discord</div>
+      </div>
+    </div>
+  </div>
+  <p class="sub">Coche chaque esprit et variante que tu possèdes déjà.</p>
+  <div class="progress-wrap">
+    <div class="orb" id="orb"><span id="orbPct">0%</span></div>
+    <div style="flex:1; display:flex; flex-direction:column; gap:6px;">
+      <div class="bar-track"><div class="bar-fill" id="barFill" style="width:0%"></div></div>
+      <div class="count-text" id="countText">0 / 83 esprits obtenus</div>
+    </div>
+  </div>
+</header>
+
+<div id="announceBanner" style="display:none; max-width:920px; margin:12px auto 0; padding:10px 16px; background:linear-gradient(90deg, rgba(245,198,75,0.16), rgba(255,111,165,0.12)); border:1px solid rgba(245,198,75,0.35); border-radius:10px; color:#ffe08a; font-size:12.5px; font-weight:600;">
+  📢 <span id="announceText"></span>
+</div>
+
+<div class="toolbar">
+  <div class="filters">
+    <button class="filter-btn active" data-filter="all" type="button">Tous</button>
+    <button class="filter-btn" data-filter="missing" type="button">Manquants</button>
+    <button class="filter-btn" data-filter="owned" type="button">Obtenus</button>
+  </div>
+  <div class="action-row">
+    <button class="dl-btn" id="downloadBtn" type="button">⬇ Image des manquants</button>
+  </div>
+</div>
+
+<div class="toolbar" style="margin-top:8px;">
+  <div class="rarity-filters" id="rarityFilters">
+    <button class="rf-btn active" data-rarity="all" type="button">Toutes raretés</button>
+    <button class="rf-btn" data-rarity="rare" type="button">Rare</button>
+    <button class="rf-btn" data-rarity="epic" type="button">Épique</button>
+    <button class="rf-btn" data-rarity="legendary" type="button">Légendaire</button>
+    <button class="rf-btn" data-rarity="mythic" type="button">Mythique</button>
+  </div>
+  <div class="action-row">
+    <button class="ticket-btn" id="openTicketBtn" type="button">🎫 Créer un ticket</button>
+    <button class="admin-btn" id="myTicketsBtn" type="button">📋 Mes tickets</button>
+    <button class="admin-btn" id="openAdminBtn" type="button">🔑 Panel admin</button>
+  </div>
+</div>
+
+<div class="toolbar" style="margin-top:8px;">
+  <div class="action-row">
+    <button class="admin-btn" id="playerSearchBtn" type="button">🔍 Chercher un joueur</button>
+    <button class="admin-btn" id="myTradesBtn" type="button">🔄 Mes échanges</button>
+  </div>
+</div>
+
+<main id="main"></main>
+
+<footer>
+  <p class="disclaimer">Outil de suivi personnel fait maison, basé sur les esprits de Fortnite. Non affilié à Epic Games. Les icônes sont des symboles génériques, pas des visuels officiels du jeu — Fortnite et ses esprits sont des marques d'Epic Games, Inc. Compte protégé par mot de passe (authentification Supabase) ; ta progression et tes tickets sont liés à ton compte et accessibles depuis n'importe quel appareil.</p>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<!-- Portail de connexion : bloque l'accès tant qu'on n'est pas connecté -->
+<div class="modal-backdrop" id="authGate">
+  <div class="modal" style="max-width:380px;">
+    <div class="auth-tabs">
+      <button type="button" class="auth-tab active" data-tab="login">Connexion</button>
+      <button type="button" class="auth-tab" data-tab="signup">Créer un compte</button>
+    </div>
+
+    <div id="authLoginPane">
+      <h2 style="margin-top:14px;">Connexion</h2>
+      <p class="hint">Connecte-toi avec ton pseudo Fortnite et ton mot de passe.</p>
+      <div class="field">
+        <label for="loginFortnite">Pseudo Fortnite</label>
+        <input type="text" id="loginFortnite" maxlength="24" placeholder="Ex: Ninja" autocomplete="username">
+      </div>
+      <div class="field">
+        <label for="loginPassword">Mot de passe</label>
+        <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <div class="modal-actions">
+        <button class="btn-primary" id="loginSubmit" type="button" style="flex:1;">Se connecter</button>
+      </div>
+    </div>
+
+    <div id="authSignupPane" style="display:none;">
+      <h2 style="margin-top:14px;">Créer un compte</h2>
+      <p class="hint">Choisis tes pseudos et un mot de passe (6 caractères minimum).</p>
+      <div class="field">
+        <label for="signupFortnite">Pseudo Fortnite</label>
+        <input type="text" id="signupFortnite" maxlength="24" placeholder="Ex: Ninja" autocomplete="username">
+      </div>
+      <div class="field">
+        <label for="signupDiscord">Pseudo Discord</label>
+        <input type="text" id="signupDiscord" maxlength="32" placeholder="Ex: ninja">
+      </div>
+      <div class="field">
+        <label for="signupPassword">Mot de passe</label>
+        <input type="password" id="signupPassword" placeholder="••••••••" autocomplete="new-password">
+      </div>
+      <div class="field">
+        <label for="signupPassword2">Confirmer le mot de passe</label>
+        <input type="password" id="signupPassword2" placeholder="••••••••" autocomplete="new-password">
+      </div>
+      <div class="modal-actions">
+        <button class="btn-primary" id="signupSubmit" type="button" style="flex:1;">Créer mon compte</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Modale création de ticket -->
+<div class="modal-backdrop hidden" id="ticketModal">
+  <div class="modal">
+    <h2>Nouveau ticket</h2>
+    <p class="hint" id="ticketHint">Choisis exactement 3 esprits (1 ticket maximum par jour, la limite se réinitialise chaque jour).</p>
+    <div class="pick-count" id="pickCount">0 / 3 sélectionnés</div>
+    <div class="pick-grid" id="pickGrid"></div>
+    <div class="field" style="margin-top:10px;">
+      <label for="ticketMessage">Message (optionnel)</label>
+      <input type="text" id="ticketMessage" maxlength="140" placeholder="Précise ta demande...">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="ticketCancel" type="button">Annuler</button>
+      <button class="btn-primary" id="ticketSubmit" type="button">Envoyer le ticket</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modale code admin -->
+<div class="modal-backdrop hidden" id="adminCodeModal">
+  <div class="modal">
+    <h2>Panel admin</h2>
+    <p class="hint">Entre le code d'accès.</p>
+    <div class="field">
+      <label for="inputAdminCode">Code</label>
+      <input type="password" id="inputAdminCode" inputmode="numeric" placeholder="••••••">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="adminCodeCancel" type="button">Annuler</button>
+      <button class="btn-primary" id="adminCodeSubmit" type="button">Valider</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modale panel admin -->
+<div class="modal-backdrop hidden" id="adminPanelModal">
+  <div class="modal" style="max-width:520px;">
+    <h2>🎫 Tickets</h2>
+    <p class="hint">Réponds aux demandes des joueurs. Visible par tout le monde utilisant cet outil.</p>
+    <div id="ticketList"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="adminPanelClose" type="button">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modale "Mes tickets" (côté joueur) -->
+<div class="modal-backdrop hidden" id="myTicketsModal">
+  <div class="modal" style="max-width:520px;">
+    <h2>📋 Mes tickets</h2>
+    <p class="hint">Le statut et la réponse de l'admin s'affichent ici dès qu'elle arrive.</p>
+    <div id="myTicketList"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="myTicketsClose" type="button">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Écran de bannissement (bloquant, aucune fermeture) -->
+<div class="modal-backdrop hidden" id="banGate">
+  <div class="modal" style="max-width:380px; text-align:center;">
+    <div style="font-size:40px; margin-bottom:8px;">⛔</div>
+    <h2>Compte banni</h2>
+    <p class="hint" id="banGateText" style="font-size:14px;"></p>
+  </div>
+</div>
+
+<!-- Menu admin -->
+<div class="modal-backdrop hidden" id="adminMenuModal">
+  <div class="modal" style="max-width:380px;">
+    <h2>🔑 Panel admin</h2>
+    <p class="hint">Choisis une section.</p>
+    <div style="display:flex; flex-direction:column; gap:8px;">
+      <button class="admin-btn" id="adminGoTickets" type="button" style="width:100%; justify-content:flex-start;">🎫 Tickets des joueurs</button>
+      <button class="admin-btn" id="adminGoAnnounce" type="button" style="width:100%; justify-content:flex-start;">📢 Annonce du site</button>
+      <button class="admin-btn" id="adminGoBans" type="button" style="width:100%; justify-content:flex-start;">⛔ Bannissements</button>
+      <button class="admin-btn" id="adminGoSearch" type="button" style="width:100%; justify-content:flex-start;">🔍 Rechercher / modifier un joueur</button>
+      <button class="admin-btn" id="adminGoDashboard" type="button" style="width:100%; justify-content:flex-start;">📊 Tableau de bord</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="adminMenuClose" type="button">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Annonce (admin) -->
+<div class="modal-backdrop hidden" id="announceModal">
+  <div class="modal">
+    <h2>📢 Annonce</h2>
+    <p class="hint">Affichée en bandeau tout en haut du site pour tout le monde. Laisse vide + Enregistrer pour la retirer.</p>
+    <div class="field">
+      <label for="announceInput">Message</label>
+      <input type="text" id="announceInput" maxlength="180" placeholder="Ex: Nouvel esprit disponible ce soir !">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="announceBack" type="button">Retour</button>
+      <button class="btn-primary" id="announceSave" type="button">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bannissements (admin) -->
+<div class="modal-backdrop hidden" id="banModal">
+  <div class="modal" style="max-width:460px;">
+    <h2>⛔ Bannissements</h2>
+    <div class="field">
+      <label for="banFortnite">Pseudo Fortnite exact</label>
+      <input type="text" id="banFortnite" maxlength="24" placeholder="Ex: Ninja">
+    </div>
+    <div class="field">
+      <label for="banDuration">Durée</label>
+      <select id="banDuration" style="width:100%; background:var(--panel-2); border:1px solid var(--line); color:var(--text); padding:10px 12px; border-radius:9px; font-size:14px;">
+        <option value="1">1 jour</option>
+        <option value="3">3 jours</option>
+        <option value="7">7 jours</option>
+        <option value="30">30 jours</option>
+        <option value="0">Indéfiniment</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="banReason">Raison (optionnel)</label>
+      <input type="text" id="banReason" maxlength="140" placeholder="Ex: propos déplacés">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="banBack" type="button">Retour</button>
+      <button class="btn-primary" id="banSubmit" type="button">Bannir</button>
+    </div>
+    <h2 style="margin-top:20px; font-size:16px;">Bannis actuels</h2>
+    <div id="banList" style="margin-top:8px;"></div>
+  </div>
+</div>
+
+<!-- Recherche joueur (tout le monde) + modification (admin) -->
+<div class="modal-backdrop hidden" id="searchModal">
+  <div class="modal" style="max-width:520px;">
+    <h2>🔍 Rechercher un joueur</h2>
+    <div class="field">
+      <label for="searchInput">Pseudo Fortnite ou Discord</label>
+      <input type="text" id="searchInput" placeholder="Tape un pseudo...">
+    </div>
+    <div class="modal-actions" style="margin-top:0;">
+      <button class="btn-ghost" id="searchBack" type="button">Retour</button>
+      <button class="btn-primary" id="searchSubmit" type="button">Chercher</button>
+    </div>
+    <div id="searchResults" style="margin-top:14px;"></div>
+  </div>
+</div>
+
+<!-- Fiche joueur (collection + proposer échange / attribution admin) -->
+<div class="modal-backdrop hidden" id="playerModal">
+  <div class="modal" style="max-width:520px;">
+    <h2 id="playerModalTitle">Joueur</h2>
+    <p class="hint" id="playerModalSub"></p>
+    <div id="playerCollection" style="max-height:340px; overflow-y:auto;"></div>
+    <div id="tradeProposeBlock" style="display:none; margin-top:14px; border-top:1px solid var(--line); padding-top:14px;">
+      <p class="hint" style="margin-bottom:8px;">Proposer un échange :</p>
+      <div class="field">
+        <label>Ce que tu offres (parmi ta collection)</label>
+        <select id="tradeOfferSelect" style="width:100%; background:var(--panel-2); border:1px solid var(--line); color:var(--text); padding:10px 12px; border-radius:9px; font-size:13px;"></select>
+      </div>
+      <div class="field">
+        <label>Ce que tu veux (parmi sa collection)</label>
+        <select id="tradeWantSelect" style="width:100%; background:var(--panel-2); border:1px solid var(--line); color:var(--text); padding:10px 12px; border-radius:9px; font-size:13px;"></select>
+      </div>
+      <div class="field">
+        <label>Message (optionnel)</label>
+        <input type="text" id="tradeMessage" maxlength="140" placeholder="Précise ta proposition...">
+      </div>
+      <button class="btn-primary" id="tradeSubmit" type="button" style="width:100%;">Envoyer la proposition</button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="playerModalClose" type="button">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Mes échanges -->
+<div class="modal-backdrop hidden" id="myTradesModal">
+  <div class="modal" style="max-width:520px;">
+    <h2>🔄 Mes échanges</h2>
+    <div id="myTradesList"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="myTradesClose" type="button">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Tableau de bord (admin) -->
+<div class="modal-backdrop hidden" id="dashboardModal">
+  <div class="modal" style="max-width:460px;">
+    <h2>📊 Tableau de bord</h2>
+    <div id="dashboardContent"><div style="color:var(--muted); font-size:12px;">Chargement...</div></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="dashboardBack" type="button">Retour</button>
+    </div>
+  </div>
+</div>
+
+<script>
+
+const VARIANT_LABELS = { normal:"Normal", gold:"Or", gummy:"Gélifié", galaxy:"Galaxie", holofoil:"Holofoil" };
+const ADMIN_CODE = "285028";
+
+const SUPABASE_URL = "https://cgyknbjnumuxvvlpvopa.supabase.co";
+const SUPABASE_KEY = "sb_publishable_ZdN0TGUnsTlBqwsnbx0e8Q_XCEPz7k8";
+
+async function sb(path, options={}){
+  return fetch(SUPABASE_URL + '/rest/v1/' + path, {
+    ...options,
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      ...(options.headers || {})
+    }
+  });
+}
+
+const SPRITES = [
+  { id:"water", name:"Esprit de l'Eau", emoji:"💧", rarity:"rare", ability:"Régénère les boucliers dans l'eau, pour toi et ton équipe.", variants:["normal","gold","gummy","galaxy","holofoil"] },
+  { id:"earth", name:"Esprit de la Terre", emoji:"🌍", rarity:"rare", ability:"Chance d'objets plus rares en fouillant les coffres.", variants:["normal","gold","gummy","galaxy"] },
+  { id:"fire", name:"Esprit du Feu", emoji:"🔥", rarity:"rare", ability:"Déclenche une explosion de feu après assez de dégâts infligés.", variants:["normal","gold","gummy","galaxy","holofoil"] },
+  { id:"fishy", name:"Esprit Poisson", emoji:"🐟", rarity:"rare", ability:"Augmente la vitesse de nage, encore plus sous les tirs.", variants:["normal","gold","gummy","galaxy"] },
+  { id:"air", name:"Esprit de l'Air", emoji:"🌬️", rarity:"rare", ability:"Capacité liée au déplacement aérien.", variants:["normal","gold","gummy","galaxy","holofoil"] },
+  { id:"duck", name:"Esprit Canard", emoji:"🦆", rarity:"epic", ability:"Danser ou émoter régénère les boucliers.", variants:["normal","gold","gummy","galaxy"] },
+  { id:"ghost", name:"Esprit Fantôme", emoji:"👻", rarity:"epic", ability:"Te rend invisible un court instant en rechargeant.", variants:["normal","gold","gummy","galaxy","holofoil"] },
+  { id:"demon", name:"Esprit Démoniaque", emoji:"😈", rarity:"epic", ability:"Vole vie et boucliers lors des éliminations.", variants:["normal","gold","gummy","galaxy"] },
+  { id:"king", name:"Esprit Royal", emoji:"👑", rarity:"epic", ability:"Augmente les dégâts de la pioche.", variants:["normal","gold","gummy","galaxy","holofoil"] },
+  { id:"aura", name:"Esprit Aura", emoji:"✨", rarity:"epic", ability:"Charge une Roche Choc après assez de dégâts infligés.", variants:["normal","gold","gummy","galaxy"] },
+  { id:"striker", name:"Esprit Striker", emoji:"⚽", rarity:"epic", ability:"Déclenche l'Overdrive en escaladant ou en franchissant un obstacle.", variants:["normal","gold","gummy","galaxy","holofoil"] },
+  { id:"dream", name:"Esprit du Rêve", emoji:"💤", rarity:"legendary", ability:"Objet aléatoire à chaque niveau, butin légendaire au niveau max.", variants:["normal","gold","gummy","galaxy"] },
+  { id:"punk", name:"Esprit Punk", emoji:"🤘", rarity:"legendary", ability:"Chance de munitions infinies.", variants:["normal","gold","gummy","galaxy"] },
+  { id:"boss", name:"Esprit Boss", emoji:"💪", rarity:"legendary", ability:"Augmente la santé et le bouclier maximum.", variants:["normal","gold","gummy","galaxy"] },
+  { id:"seven", name:"Esprit Seven", emoji:"7️⃣", rarity:"legendary", ability:"Capacité spéciale liée à l'événement Seven.", variants:["normal","gold","gummy","galaxy","holofoil"] },
+  { id:"batman", name:"Esprit Batman", emoji:"🦇", rarity:"mythic", ability:"Déploie la cape en plein vol, trouve plus d'esprits rares.", variants:["normal","gold","gummy","galaxy","holofoil"] },
+  { id:"grimreaper", name:"Esprit Grim Reaper", emoji:"💀", rarity:"mythic", ability:"Repère sur la carte tout joueur qui te blesse.", variants:["normal","gold","gummy","galaxy"] },
+  { id:"zeropoint", name:"Esprit Zero Point", emoji:"⚡", rarity:"mythic", ability:"Crée une mini bulle de protection quand tu te soignes.", variants:["normal","gold","gummy","galaxy"] },
+  { id:"burntpeanut", name:"Esprit Burnt Peanut", emoji:"🥜", rarity:"mythic", ability:"Chance de butin bonus, voire mythique, à l'élimination.", variants:["normal"] },
+  { id:"vinijr", name:"Esprit Vini Jr.", emoji:"⚽", rarity:"mythic", ability:"Un sprint débloque un glissé qui blesse et booste cadence/rechargement.", variants:["normal"] },
+  { id:"pollo", name:"Esprit Pollo", emoji:"🐔", rarity:"mythic", ability:"Régénère les boucliers de l'équipe après une élimination.", variants:["normal"] },
+];
+
+const RARITY_LABEL = { rare:"Rare", epic:"Épique", legendary:"Légendaire", mythic:"Mythique" };
+const RARITY_ORDER = ["mythic","legendary","epic","rare"];
+const RARITY_HEX = { rare:"#7a96ff", epic:"#8b5cf6", legendary:"#f5c64b", mythic:"#ff5a78" };
+const TOTAL = SPRITES.reduce((sum,s)=>sum+s.variants.length, 0);
+
+let owned = {};
+let currentFilter = "all";
+let currentRarity = "all";
+let profile = null; // { fortnite, discord }, rempli après connexion
+let accessToken = null;
+let ticketSelection = [];
+
+function keyFor(spriteId, variant){ return spriteId + ":" + variant; }
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(showToast._t);
+  const duration = msg.length > 40 ? 6000 : 2200;
+  showToast._t = setTimeout(()=> t.classList.remove('show'), duration);
+}
+
+// ---------- Authentification (via Supabase Auth) ----------
+// On dérive un identifiant interne à partir du pseudo Fortnite (Supabase Auth
+// demande un "email" en interne, mais le joueur ne voit/saisit jamais que son pseudo).
+function emailForPseudo(pseudo){
+  const clean = pseudo.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+  return (clean || 'joueur') + '@grimoire-esprits.local';
+}
+
+async function authRequest(path, body){
+  const res = await fetch(SUPABASE_URL + '/auth/v1/' + path, {
+    method: 'POST',
+    headers: { 'apikey': SUPABASE_KEY, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  const data = await res.json().catch(()=> ({}));
+  return { ok: res.ok, status: res.status, data };
+}
+
+async function signUp(fortnite, discord, password){
+  const { ok, data } = await authRequest('signup', {
+    email: emailForPseudo(fortnite),
+    password,
+    data: { fortnite, discord }
+  });
+  if(!ok) return { ok:false, error: data.msg || data.error_description || data.message || 'Inscription impossible' };
+  if(!data.access_token){
+    // Compte créé mais confirmation email requise côté Supabase (à désactiver dans Authentication > Providers > Email)
+    return { ok:false, error: 'Compte créé mais connexion auto impossible — désactive "Confirm email" dans Supabase (Authentication > Providers > Email).' };
+  }
+  return { ok:true, token: data.access_token, refresh: data.refresh_token, user: data.user };
+}
+
+async function signIn(fortnite, password){
+  const { ok, data } = await authRequest('token?grant_type=password', {
+    email: emailForPseudo(fortnite),
+    password
+  });
+  if(!ok) return { ok:false, error: data.msg || data.error_description || data.message || 'Pseudo ou mot de passe incorrect' };
+  return { ok:true, token: data.access_token, refresh: data.refresh_token, user: data.user };
+}
+
+async function checkBan(fortnite){
+  try{
+    const res = await sb('bans?fortnite=eq.' + encodeURIComponent(fortnite) + '&select=until,reason');
+    if(!res.ok) return null;
+    const rows = await res.json();
+    if(rows.length === 0) return null;
+    const ban = rows[0];
+    if(ban.until && new Date(ban.until) <= new Date()) return null; // ban expiré
+    return ban;
+  }catch(e){ return null; }
+}
+
+function showBanScreen(ban){
+  const txt = document.getElementById('banGateText');
+  if(ban.until){
+    const d = new Date(ban.until);
+    txt.textContent = 'Tu es banni jusqu\'au ' + d.toLocaleDateString('fr-FR') + ' à ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}) + (ban.reason ? ' — Raison : ' + ban.reason : '');
+  } else {
+    txt.textContent = 'Tu es banni indéfiniment.' + (ban.reason ? ' — Raison : ' + ban.reason : '');
+  }
+  document.getElementById('authGate').classList.add('hidden');
+  document.getElementById('banGate').classList.remove('hidden');
+}
+
+async function upsertProfile(fortnite, discord){
+  try{
+    await sb('profiles?on_conflict=fortnite', {
+      method:'POST',
+      headers:{ 'Prefer':'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify({ fortnite, discord: discord || '', last_seen: new Date().toISOString() })
+    });
+  }catch(e){ /* pas bloquant */ }
+}
+
+function applySession(token, user){
+  accessToken = token;
+  const meta = (user && user.user_metadata) || {};
+  profile = { fortnite: meta.fortnite || '', discord: meta.discord || '' };
+  try{ localStorage.setItem('grimoire_token', token); }catch(e){ /* stockage indisponible, session non persistée */ }
+  updateProfileChip();
+  document.getElementById('authGate').classList.add('hidden');
+  document.getElementById('banGate').classList.add('hidden');
+  upsertProfile(profile.fortnite, profile.discord);
+}
+
+async function tryRestoreSession(){
+  let token = null;
+  try{ token = localStorage.getItem('grimoire_token'); }catch(e){ /* pas d'accès au stockage local */ }
+  if(!token) return false;
+  try{
+    const res = await fetch(SUPABASE_URL + '/auth/v1/user', {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + token }
+    });
+    if(!res.ok) return false;
+    const user = await res.json();
+    const meta = (user && user.user_metadata) || {};
+    const ban = await checkBan(meta.fortnite || '');
+    if(ban){
+      try{ localStorage.removeItem('grimoire_token'); }catch(e){}
+      showBanScreen(ban);
+      return true; // écran de ban affiché, ne pas montrer aussi le portail de connexion
+    }
+    applySession(token, user);
+    owned = await loadProgressFor(profile.fortnite);
+    render();
+    return true;
+  }catch(e){ return false; }
+}
+
+function logout(){
+  accessToken = null;
+  profile = null;
+  owned = {};
+  try{ localStorage.removeItem('grimoire_token'); }catch(e){}
+  updateProfileChip();
+  render();
+  document.getElementById('authGate').classList.remove('hidden');
+}
+
+document.querySelectorAll('.auth-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const isLogin = tab.dataset.tab === 'login';
+    document.getElementById('authLoginPane').style.display = isLogin ? 'block' : 'none';
+    document.getElementById('authSignupPane').style.display = isLogin ? 'none' : 'block';
+  });
+});
+
+document.getElementById('loginSubmit').addEventListener('click', async () => {
+  const fn = document.getElementById('loginFortnite').value.trim();
+  const pw = document.getElementById('loginPassword').value;
+  if(!fn || !pw){ showToast('⚠ Remplis pseudo et mot de passe'); return; }
+  const btn = document.getElementById('loginSubmit');
+  btn.disabled = true;
+  const result = await signIn(fn, pw);
+  if(!result.ok){ showToast('⚠ ' + result.error); btn.disabled = false; return; }
+  const meta = (result.user && result.user.user_metadata) || {};
+  const ban = await checkBan(meta.fortnite || fn);
+  btn.disabled = false;
+  if(ban){ showBanScreen(ban); return; }
+  applySession(result.token, result.user);
+  owned = await loadProgressFor(profile.fortnite);
+  render();
+  showToast('✓ Connecté en tant que ' + profile.fortnite);
+});
+
+document.getElementById('signupSubmit').addEventListener('click', async () => {
+  const fn = document.getElementById('signupFortnite').value.trim();
+  const dc = document.getElementById('signupDiscord').value.trim();
+  const pw = document.getElementById('signupPassword').value;
+  const pw2 = document.getElementById('signupPassword2').value;
+  if(!fn || !dc || !pw){ showToast('⚠ Remplis tous les champs'); return; }
+  if(pw.length < 6){ showToast('⚠ Mot de passe : 6 caractères minimum'); return; }
+  if(pw !== pw2){ showToast('⚠ Les mots de passe ne correspondent pas'); return; }
+  const btn = document.getElementById('signupSubmit');
+  btn.disabled = true;
+  const result = await signUp(fn, dc, pw);
+  btn.disabled = false;
+  if(!result.ok){ showToast('⚠ ' + result.error); return; }
+  applySession(result.token, result.user);
+  owned = {};
+  render();
+  showToast('✓ Compte créé, bienvenue ' + profile.fortnite + ' !');
+});
+
+document.getElementById('profileChip').addEventListener('click', () => {
+  if(!profile) return;
+  if(confirm('Te déconnecter, ' + profile.fortnite + ' ?')) logout();
+});
+
+// ---------- Collection (liée au pseudo Fortnite, stockée dans Supabase) ----------
+async function loadProgressFor(pseudo){
+  try{
+    const res = await sb('progress?fortnite=eq.' + encodeURIComponent(pseudo) + '&select=owned');
+    if(!res.ok) return {};
+    const data = await res.json();
+    if(data.length && data[0].owned) return data[0].owned;
+  }catch(e){ /* pas encore de progression sauvegardée */ }
+  return {};
+}
+async function saveProgress(){
+  if(!profile || !profile.fortnite) return; // rien à sauvegarder tant que non connecté
+  try{
+    const res = await sb('progress?on_conflict=fortnite', {
+      method:'POST',
+      headers:{ 'Prefer':'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify({ fortnite: profile.fortnite, owned, updated_at: new Date().toISOString() })
+    });
+    if(!res.ok){ showToast("⚠ Sauvegarde impossible, réessaie"); }
+  }catch(e){ showToast("⚠ Sauvegarde impossible, réessaie"); }
+}
+function toggle(spriteId, variant){
+  if(!profile || !profile.fortnite){
+    showToast('⚠ Connecte-toi pour sauvegarder ta progression');
+    document.getElementById('authGate').classList.remove('hidden');
+    return;
+  }
+  owned[keyFor(spriteId, variant)] = !owned[keyFor(spriteId, variant)];
+  render();
+  saveProgress();
+}
+function countOwned(){
+  let n = 0;
+  SPRITES.forEach(s => s.variants.forEach(v => { if(owned[keyFor(s.id,v)]) n++; }));
+  return n;
+}
+
+function render(){
+  const ownedCount = countOwned();
+  const pct = Math.round((ownedCount/TOTAL)*100);
+  document.getElementById('orb').style.setProperty('--pct', pct);
+  document.getElementById('orbPct').textContent = pct + '%';
+  document.getElementById('barFill').style.width = pct + '%';
+  document.getElementById('countText').textContent = ownedCount + ' / ' + TOTAL + ' esprits obtenus';
+
+  const main = document.getElementById('main');
+  main.innerHTML = '';
+  const visibleSprites = SPRITES.filter(s => currentRarity === 'all' || s.rarity === currentRarity);
+
+  visibleSprites.forEach(sprite => {
+    const spriteOwnedCount = sprite.variants.filter(v => owned[keyFor(sprite.id,v)]).length;
+    const spriteTotal = sprite.variants.length;
+    if(currentFilter === 'owned' && spriteOwnedCount === 0) return;
+    if(currentFilter === 'missing' && spriteOwnedCount === spriteTotal) return;
+
+    const card = document.createElement('div');
+    card.className = 'card';
+    const top = document.createElement('div');
+    top.className = 'card-top';
+    top.innerHTML = `
+      <div class="icon-badge">${sprite.emoji}</div>
+      <div class="card-title">
+        <div class="name">${sprite.name}</div>
+        <span class="rarity ${sprite.rarity}">${RARITY_LABEL[sprite.rarity]}</span>
+        <div class="ability">${sprite.ability}</div>
+      </div>
+      <div class="card-count">${spriteOwnedCount}/${spriteTotal}</div>
+    `;
+    card.appendChild(top);
+
+    const chips = document.createElement('div');
+    chips.className = 'chips';
+    sprite.variants.forEach(variant => {
+      const isOwned = !!owned[keyFor(sprite.id,variant)];
+      if(currentFilter === 'owned' && !isOwned) return;
+      if(currentFilter === 'missing' && isOwned) return;
+      const chip = document.createElement('div');
+      chip.className = 'chip' + (isOwned ? ' checked' : '');
+      chip.dataset.variant = variant;
+      chip.setAttribute('role','button'); chip.setAttribute('tabindex','0');
+      chip.innerHTML = `<span class="box">${isOwned ? '✓' : ''}</span>${VARIANT_LABELS[variant]}`;
+      chip.addEventListener('click', () => toggle(sprite.id, variant));
+      chip.addEventListener('keydown', (e) => { if(e.key==='Enter'||e.key===' '){ e.preventDefault(); toggle(sprite.id, variant);} });
+      chips.appendChild(chip);
+    });
+    card.appendChild(chips);
+    main.appendChild(card);
+  });
+
+  if(main.children.length === 0){
+    main.innerHTML = '<div style="text-align:center; color:var(--muted); padding:40px 0;">Rien à afficher pour ce filtre.</div>';
+  }
+}
+
+document.querySelectorAll('.filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active'); currentFilter = btn.dataset.filter; render();
+  });
+});
+document.querySelectorAll('.rf-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.rf-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active'); currentRarity = btn.dataset.rarity; render();
+  });
+});
+
+// ---------- Profil ----------
+function updateProfileChip(){
+  const p1 = document.getElementById('profileP1');
+  const p2 = document.getElementById('profileP2');
+  const av = document.getElementById('profileAvatar');
+  if(profile && profile.fortnite){
+    p1.textContent = profile.fortnite;
+    p2.textContent = 'Discord: ' + (profile.discord || '—') + ' · déconnexion';
+    av.textContent = profile.fortnite.slice(0,2).toUpperCase();
+  } else {
+    p1.textContent = 'Non connecté';
+    p2.textContent = '';
+    av.textContent = '?';
+  }
+}
+
+// ---------- Tickets (stockage partagé) ----------
+function todayKey(){
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+function openTicketModal(){
+  if(!profile || !profile.fortnite){
+    showToast('⚠ Connecte-toi d\'abord (pseudo Fortnite)');
+    document.getElementById('authGate').classList.remove('hidden');
+    return;
+  }
+  ticketSelection = []; // tableau de "spriteId:variant"
+  const grid = document.getElementById('pickGrid');
+  grid.innerHTML = '';
+  SPRITES.forEach(s => {
+    const block = document.createElement('div');
+    block.className = 'pick-block';
+    const title = document.createElement('div');
+    title.className = 'pick-title';
+    title.innerHTML = `<span>${s.emoji}</span> ${s.name}`;
+    block.appendChild(title);
+
+    const varRow = document.createElement('div');
+    varRow.className = 'pick-variants';
+    s.variants.forEach(variant => {
+      const k = keyFor(s.id, variant);
+      const vchip = document.createElement('div');
+      vchip.className = 'pick-vchip';
+      vchip.dataset.variant = variant;
+      vchip.textContent = VARIANT_LABELS[variant];
+      vchip.addEventListener('click', () => {
+        const idx = ticketSelection.indexOf(k);
+        if(idx >= 0){
+          ticketSelection.splice(idx,1);
+          vchip.classList.remove('selected');
+        } else {
+          if(ticketSelection.length >= 3){ showToast('⚠ Maximum 3 sélections'); return; }
+          ticketSelection.push(k);
+          vchip.classList.add('selected');
+        }
+        document.getElementById('pickCount').textContent = ticketSelection.length + ' / 3 sélectionnés';
+      });
+      varRow.appendChild(vchip);
+    });
+    block.appendChild(varRow);
+    grid.appendChild(block);
+  });
+  document.getElementById('pickCount').textContent = '0 / 3 sélectionnés';
+  document.getElementById('ticketMessage').value = '';
+  document.getElementById('ticketModal').classList.remove('hidden');
+}
+document.getElementById('openTicketBtn').addEventListener('click', openTicketModal);
+document.getElementById('ticketCancel').addEventListener('click', () => {
+  document.getElementById('ticketModal').classList.add('hidden');
+});
+
+// Les tickets sont stockés dans la table Supabase "tickets"
+async function loadTickets(){
+  try{
+    const res = await sb('tickets?select=*&order=created_at.desc');
+    if(!res.ok) return [];
+    return await res.json();
+  }catch(e){ return []; }
+}
+
+document.getElementById('ticketSubmit').addEventListener('click', async () => {
+  if(ticketSelection.length !== 3){ showToast('⚠ Choisis exactement 3 esprits'); return; }
+  if(!profile || !profile.fortnite){ showToast('⚠ Connecte-toi d\'abord'); return; }
+  const submitBtn = document.getElementById('ticketSubmit');
+  submitBtn.disabled = true;
+  try{
+    const dayKey = todayKey();
+    const checkRes = await sb('tickets?fortnite=eq.' + encodeURIComponent(profile.fortnite) + '&day_key=eq.' + dayKey + '&select=id');
+    if(!checkRes.ok){
+      const errTxt = await checkRes.text().catch(()=> '');
+      showToast('⚠ Erreur lecture (' + checkRes.status + '): ' + errTxt.slice(0,120));
+      submitBtn.disabled = false;
+      return;
+    }
+    const existing = await checkRes.json();
+    if(existing.length > 0){
+      showToast('⚠ Tu as déjà créé un ticket aujourd\'hui, reviens demain');
+      submitBtn.disabled = false;
+      return;
+    }
+
+    const ticket = {
+      id: 't' + Date.now() + Math.floor(Math.random()*1000),
+      fortnite: profile.fortnite,
+      discord: profile.discord || '',
+      esprits: ticketSelection.slice(),
+      message: document.getElementById('ticketMessage').value.trim(),
+      created_at: new Date().toISOString(),
+      day_key: dayKey,
+      status: 'open',
+      response: null
+    };
+    const res = await sb('tickets', {
+      method:'POST',
+      headers:{ 'Prefer':'return=minimal' },
+      body: JSON.stringify(ticket)
+    });
+    if(!res.ok){
+      const errTxt = await res.text().catch(()=> '');
+      showToast('⚠ Erreur envoi (' + res.status + '): ' + errTxt.slice(0,120));
+      submitBtn.disabled = false;
+      return;
+    }
+    showToast('✓ Ticket envoyé !');
+    document.getElementById('ticketModal').classList.add('hidden');
+  }catch(e){
+    showToast('⚠ Erreur réseau: ' + (e && e.message ? e.message : String(e)));
+  }
+  submitBtn.disabled = false;
+});
+
+document.getElementById('myTicketsBtn').addEventListener('click', openMyTickets);
+document.getElementById('myTicketsClose').addEventListener('click', () => {
+  document.getElementById('myTicketsModal').classList.add('hidden');
+});
+
+async function openMyTickets(){
+  if(!profile || !profile.fortnite){
+    showToast('⚠ Connecte-toi d\'abord (pseudo Fortnite)');
+    document.getElementById('authGate').classList.remove('hidden');
+    return;
+  }
+  const list = document.getElementById('myTicketList');
+  list.innerHTML = '<div style="color:var(--muted); font-size:12px;">Chargement...</div>';
+  document.getElementById('myTicketsModal').classList.remove('hidden');
+
+  const all = await loadTickets();
+  const mine = all.filter(t => t.fortnite && t.fortnite.toLowerCase() === profile.fortnite.toLowerCase());
+
+  if(mine.length === 0){
+    list.innerHTML = '<div style="color:var(--muted); font-size:12px; text-align:center; padding:20px 0;">Tu n\'as pas encore créé de ticket.</div>';
+    return;
+  }
+
+  list.innerHTML = '';
+  mine.forEach(t => {
+    const item = document.createElement('div');
+    item.className = 'ticket-item';
+    const dateTxt = new Date(t.created_at).toLocaleString('fr-FR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+    const espritsHtml = t.esprits.map(k => { const label = describeEspritKey(k); return label ? `<span>${label}</span>` : ''; }).join('');
+    item.innerHTML = `
+      <div class="th">
+        <div class="who">Ton ticket</div>
+        <span class="status-badge ${t.status === 'answered' ? 'answered' : 'open'}">${t.status === 'answered' ? 'Répondu' : 'En attente'}</span>
+      </div>
+      <div class="ticket-date">${dateTxt}</div>
+      <div class="ticket-esprits">${espritsHtml}</div>
+      ${t.message ? `<div style="font-size:12.5px; color:var(--text); margin-top:4px;"><strong>Ton message :</strong> "${t.message.replace(/</g,'&lt;')}"</div>` : ''}
+      ${t.response ? `<div class="existing" style="margin-top:8px;"><strong>Réponse de l'admin :</strong> ${t.response.replace(/</g,'&lt;')}</div>` : '<div style="font-size:12px; color:var(--muted); margin-top:8px;">Pas encore de réponse.</div>'}
+    `;
+    list.appendChild(item);
+  });
+}
+
+// ---------- Admin ----------
+let isAdmin = false;
+
+document.getElementById('openAdminBtn').addEventListener('click', () => {
+  if(isAdmin){ document.getElementById('adminMenuModal').classList.remove('hidden'); return; }
+  document.getElementById('inputAdminCode').value = '';
+  document.getElementById('adminCodeModal').classList.remove('hidden');
+});
+document.getElementById('adminCodeCancel').addEventListener('click', () => {
+  document.getElementById('adminCodeModal').classList.add('hidden');
+});
+document.getElementById('adminCodeSubmit').addEventListener('click', async () => {
+  const code = document.getElementById('inputAdminCode').value.trim();
+  if(code !== ADMIN_CODE){ showToast('⚠ Code incorrect'); return; }
+  isAdmin = true;
+  document.getElementById('adminCodeModal').classList.add('hidden');
+  document.getElementById('adminMenuModal').classList.remove('hidden');
+});
+document.getElementById('adminMenuClose').addEventListener('click', () => {
+  document.getElementById('adminMenuModal').classList.add('hidden');
+});
+document.getElementById('adminGoTickets').addEventListener('click', () => {
+  document.getElementById('adminMenuModal').classList.add('hidden');
+  openAdminPanel();
+});
+document.getElementById('adminGoAnnounce').addEventListener('click', () => {
+  document.getElementById('adminMenuModal').classList.add('hidden');
+  openAnnounceEditor();
+});
+document.getElementById('adminGoBans').addEventListener('click', () => {
+  document.getElementById('adminMenuModal').classList.add('hidden');
+  openBanManager();
+});
+document.getElementById('adminGoSearch').addEventListener('click', () => {
+  document.getElementById('adminMenuModal').classList.add('hidden');
+  searchFromAdmin = true;
+  openPlayerSearch();
+});
+document.getElementById('adminGoDashboard').addEventListener('click', () => {
+  document.getElementById('adminMenuModal').classList.add('hidden');
+  openDashboard();
+});
+
+function spriteById(id){ return SPRITES.find(s => s.id === id); }
+function describeEspritKey(k){
+  const [spriteId, variant] = k.split(':');
+  const s = spriteById(spriteId);
+  if(!s) return '';
+  const vLabel = variant ? VARIANT_LABELS[variant] : '';
+  return `${s.emoji} ${s.name}${vLabel ? ' — ' + vLabel : ''}`;
+}
+
+async function openAdminPanel(){
+  const list = document.getElementById('ticketList');
+  list.innerHTML = '<div style="color:var(--muted); font-size:12px;">Chargement des tickets...</div>';
+  document.getElementById('adminPanelModal').classList.remove('hidden');
+
+  const tickets = await loadTickets();
+
+  if(tickets.length === 0){
+    list.innerHTML = '<div style="color:var(--muted); font-size:12px; text-align:center; padding:20px 0;">Aucun ticket pour le moment.</div>';
+    return;
+  }
+
+  list.innerHTML = '';
+  tickets.forEach(t => {
+    const item = document.createElement('div');
+    item.className = 'ticket-item';
+    const dateTxt = new Date(t.created_at).toLocaleString('fr-FR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
+    const espritsHtml = t.esprits.map(k => { const label = describeEspritKey(k); return label ? `<span>${label}</span>` : ''; }).join('');
+    item.innerHTML = `
+      <div class="th">
+        <div class="who">${t.fortnite} <span class="disc">· Discord: ${t.discord || '—'}</span></div>
+        <span class="status-badge ${t.status === 'answered' ? 'answered' : 'open'}">${t.status === 'answered' ? 'Répondu' : 'Ouvert'}</span>
+      </div>
+      <div class="ticket-date">${dateTxt}</div>
+      <div class="ticket-esprits">${espritsHtml}</div>
+      ${t.message ? `<div style="font-size:12.5px; color:var(--text); margin-top:6px; background:var(--panel); padding:8px; border-radius:8px;"><strong>Message du joueur :</strong> "${t.message.replace(/</g,'&lt;')}"</div>` : '<div style="font-size:11.5px; color:var(--muted); margin-top:6px;">(pas de message)</div>'}
+      <div class="ticket-reply">
+        ${t.response ? `<div class="existing"><strong>Réponse :</strong> ${t.response.replace(/</g,'&lt;')}</div>` : ''}
+        <textarea placeholder="Écrire une réponse..."></textarea>
+        <button type="button">Envoyer la réponse</button>
+      </div>
+    `;
+    const textarea = item.querySelector('textarea');
+    const replyBtn = item.querySelector('.ticket-reply button');
+    replyBtn.addEventListener('click', async () => {
+      const val = textarea.value.trim();
+      if(!val){ showToast('⚠ Écris une réponse avant d\'envoyer'); return; }
+      replyBtn.disabled = true;
+      try{
+        const res = await sb('tickets?id=eq.' + encodeURIComponent(t.id), {
+          method:'PATCH',
+          headers:{ 'Prefer':'return=minimal' },
+          body: JSON.stringify({ response: val, status: 'answered' })
+        });
+        if(!res.ok){
+          const errTxt = await res.text().catch(()=> '');
+          showToast('⚠ Erreur (' + res.status + '): ' + errTxt.slice(0,120));
+          replyBtn.disabled = false;
+          return;
+        }
+        showToast('✓ Réponse envoyée à ' + t.fortnite);
+        openAdminPanel();
+      }catch(e){
+        showToast('⚠ Erreur réseau: ' + (e && e.message ? e.message : String(e)));
+        replyBtn.disabled = false;
+      }
+    });
+    list.appendChild(item);
+  });
+}
+document.getElementById('adminPanelClose').addEventListener('click', () => {
+  document.getElementById('adminPanelModal').classList.add('hidden');
+  document.getElementById('adminMenuModal').classList.remove('hidden');
+});
+
+// ---------- Annonce du site ----------
+async function loadAnnouncement(){
+  try{
+    const res = await sb('announcements?id=eq.current&select=message');
+    if(!res.ok) return;
+    const rows = await res.json();
+    const msg = rows.length ? rows[0].message : '';
+    const banner = document.getElementById('announceBanner');
+    if(msg){
+      document.getElementById('announceText').textContent = msg;
+      banner.style.display = 'block';
+    } else {
+      banner.style.display = 'none';
+    }
+  }catch(e){ /* pas bloquant */ }
+}
+async function openAnnounceEditor(){
+  document.getElementById('announceInput').value = '';
+  try{
+    const res = await sb('announcements?id=eq.current&select=message');
+    if(res.ok){
+      const rows = await res.json();
+      if(rows.length) document.getElementById('announceInput').value = rows[0].message || '';
+    }
+  }catch(e){}
+  document.getElementById('announceModal').classList.remove('hidden');
+}
+document.getElementById('announceBack').addEventListener('click', () => {
+  document.getElementById('announceModal').classList.add('hidden');
+  document.getElementById('adminMenuModal').classList.remove('hidden');
+});
+document.getElementById('announceSave').addEventListener('click', async () => {
+  const msg = document.getElementById('announceInput').value.trim();
+  const btn = document.getElementById('announceSave');
+  btn.disabled = true;
+  try{
+    const res = await sb('announcements?on_conflict=id', {
+      method:'POST',
+      headers:{ 'Prefer':'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify({ id:'current', message: msg, updated_at: new Date().toISOString() })
+    });
+    if(!res.ok){ const t = await res.text().catch(()=>''); showToast('⚠ Erreur (' + res.status + '): ' + t.slice(0,100)); btn.disabled=false; return; }
+    showToast(msg ? '✓ Annonce publiée' : '✓ Annonce retirée');
+    loadAnnouncement();
+    document.getElementById('announceModal').classList.add('hidden');
+    document.getElementById('adminMenuModal').classList.remove('hidden');
+  }catch(e){ showToast('⚠ Erreur réseau'); }
+  btn.disabled = false;
+});
+
+// ---------- Bannissements ----------
+function computeUntil(days){
+  if(days === 0) return null;
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return d.toISOString();
+}
+async function openBanManager(){
+  document.getElementById('banFortnite').value = '';
+  document.getElementById('banReason').value = '';
+  document.getElementById('banModal').classList.remove('hidden');
+  await refreshBanList();
+}
+async function refreshBanList(){
+  const list = document.getElementById('banList');
+  list.innerHTML = '<div style="color:var(--muted); font-size:12px;">Chargement...</div>';
+  try{
+    const res = await sb('bans?select=*&order=created_at.desc');
+    if(!res.ok){ list.innerHTML = '<div style="color:var(--muted); font-size:12px;">Erreur de chargement.</div>'; return; }
+    const bans = await res.json();
+    if(bans.length === 0){ list.innerHTML = '<div style="color:var(--muted); font-size:12px;">Aucun bannissement actif.</div>'; return; }
+    list.innerHTML = '';
+    bans.forEach(b => {
+      const row = document.createElement('div');
+      row.className = 'ticket-item';
+      const untilTxt = b.until ? ('jusqu\'au ' + new Date(b.until).toLocaleDateString('fr-FR')) : 'indéfiniment';
+      row.innerHTML = `
+        <div class="th"><div class="who">${b.fortnite}</div></div>
+        <div style="font-size:12px; color:var(--muted);">Banni ${untilTxt}${b.reason ? ' — ' + b.reason.replace(/</g,'&lt;') : ''}</div>
+      `;
+      const unbanBtn = document.createElement('button');
+      unbanBtn.type = 'button';
+      unbanBtn.textContent = 'Débannir';
+      unbanBtn.style.cssText = 'margin-top:8px; border:none; cursor:pointer; background:var(--teal); color:#06131a; padding:6px 12px; border-radius:8px; font-weight:700; font-size:12px;';
+      unbanBtn.addEventListener('click', async () => {
+        unbanBtn.disabled = true;
+        try{
+          const r = await sb('bans?fortnite=eq.' + encodeURIComponent(b.fortnite), { method:'DELETE' });
+          if(!r.ok){ showToast('⚠ Échec du débannissement'); unbanBtn.disabled = false; return; }
+          showToast('✓ ' + b.fortnite + ' débanni');
+          refreshBanList();
+        }catch(e){ showToast('⚠ Erreur réseau'); unbanBtn.disabled = false; }
+      });
+      row.appendChild(unbanBtn);
+      list.appendChild(row);
+    });
+  }catch(e){ list.innerHTML = '<div style="color:var(--muted); font-size:12px;">Erreur réseau.</div>'; }
+}
+document.getElementById('banBack').addEventListener('click', () => {
+  document.getElementById('banModal').classList.add('hidden');
+  document.getElementById('adminMenuModal').classList.remove('hidden');
+});
+document.getElementById('banSubmit').addEventListener('click', async () => {
+  const fn = document.getElementById('banFortnite').value.trim();
+  if(!fn){ showToast('⚠ Entre un pseudo Fortnite'); return; }
+  const days = parseInt(document.getElementById('banDuration').value, 10);
+  const reason = document.getElementById('banReason').value.trim();
+  const btn = document.getElementById('banSubmit');
+  btn.disabled = true;
+  try{
+    // Vérifie que ce pseudo existe bien (évite de bannir un pseudo inexistant par erreur)
+    const checkRes = await sb('profiles?fortnite=eq.' + encodeURIComponent(fn) + '&select=fortnite');
+    const exists = checkRes.ok ? (await checkRes.json()).length > 0 : false;
+    if(!exists){ showToast('⚠ Aucun compte avec ce pseudo exact'); btn.disabled = false; return; }
+
+    const res = await sb('bans?on_conflict=fortnite', {
+      method:'POST',
+      headers:{ 'Prefer':'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify({ fortnite: fn, until: computeUntil(days), reason: reason || null })
+    });
+    if(!res.ok){ const t = await res.text().catch(()=>''); showToast('⚠ Erreur (' + res.status + '): ' + t.slice(0,100)); btn.disabled=false; return; }
+    showToast('✓ ' + fn + ' banni');
+    document.getElementById('banFortnite').value = '';
+    document.getElementById('banReason').value = '';
+    refreshBanList();
+  }catch(e){ showToast('⚠ Erreur réseau'); }
+  btn.disabled = false;
+});
+
+// ---------- Recherche de joueur + fiche + échanges/attribution ----------
+let searchFromAdmin = false;
+let viewedPlayer = null; // { fortnite, discord, owned }
+
+document.getElementById('playerSearchBtn').addEventListener('click', () => {
+  if(!profile){ showToast('⚠ Connecte-toi d\'abord'); return; }
+  searchFromAdmin = false;
+  openPlayerSearch();
+});
+function openPlayerSearch(){
+  document.getElementById('searchInput').value = '';
+  document.getElementById('searchResults').innerHTML = '';
+  document.getElementById('searchModal').classList.remove('hidden');
+}
+document.getElementById('searchBack').addEventListener('click', () => {
+  document.getElementById('searchModal').classList.add('hidden');
+  if(searchFromAdmin) document.getElementById('adminMenuModal').classList.remove('hidden');
+});
+document.getElementById('searchSubmit').addEventListener('click', async () => {
+  const q = document.getElementById('searchInput').value.trim();
+  const results = document.getElementById('searchResults');
+  if(!q){ showToast('⚠ Tape un pseudo'); return; }
+  results.innerHTML = '<div style="color:var(--muted); font-size:12px;">Recherche...</div>';
+  try{
+    const res = await sb('profiles?or=(fortnite.ilike.*' + encodeURIComponent(q) + '*,discord.ilike.*' + encodeURIComponent(q) + '*)&select=fortnite,discord&limit=20');
+    if(!res.ok){ results.innerHTML = '<div style="color:var(--muted); font-size:12px;">Erreur de recherche.</div>'; return; }
+    const rows = await res.json();
+    if(rows.length === 0){ results.innerHTML = '<div style="color:var(--muted); font-size:12px;">Aucun joueur trouvé.</div>'; return; }
+    results.innerHTML = '';
+    rows.forEach(p => {
+      const el = document.createElement('div');
+      el.className = 'pick-chip';
+      el.style.marginBottom = '8px';
+      el.innerHTML = `<span class="n"><strong>${p.fortnite}</strong> · Discord: ${p.discord || '—'}</span>`;
+      el.addEventListener('click', () => openPlayerProfile(p.fortnite, p.discord));
+      results.appendChild(el);
+    });
+  }catch(e){ results.innerHTML = '<div style="color:var(--muted); font-size:12px;">Erreur réseau.</div>'; }
+});
+
+async function openPlayerProfile(fortnite, discord){
+  document.getElementById('searchModal').classList.add('hidden');
+  document.getElementById('playerModalTitle').textContent = fortnite;
+  document.getElementById('playerModalSub').textContent = 'Discord: ' + (discord || '—');
+  const collDiv = document.getElementById('playerCollection');
+  collDiv.innerHTML = '<div style="color:var(--muted); font-size:12px;">Chargement...</div>';
+  document.getElementById('playerModal').classList.remove('hidden');
+
+  const owned2 = await loadProgressFor(fortnite);
+  viewedPlayer = { fortnite, discord, owned: owned2 };
+  renderPlayerCollection();
+
+  const tradeBlock = document.getElementById('tradeProposeBlock');
+  const isSelf = profile && profile.fortnite.toLowerCase() === fortnite.toLowerCase();
+  if(!isAdmin && !isSelf && profile){
+    tradeBlock.style.display = 'block';
+    fillTradeSelects();
+  } else {
+    tradeBlock.style.display = 'none';
+  }
+}
+
+function renderPlayerCollection(){
+  const collDiv = document.getElementById('playerCollection');
+  collDiv.innerHTML = '';
+  SPRITES.forEach(s => {
+    const block = document.createElement('div');
+    block.className = 'pick-block';
+    const title = document.createElement('div');
+    title.className = 'pick-title';
+    title.innerHTML = `<span>${s.emoji}</span> ${s.name}`;
+    block.appendChild(title);
+    const row = document.createElement('div');
+    row.className = 'pick-variants';
+    s.variants.forEach(variant => {
+      const k = keyFor(s.id, variant);
+      const has = !!viewedPlayer.owned[k];
+      const chip = document.createElement('div');
+      chip.className = 'pick-vchip' + (has ? ' selected' : '');
+      chip.textContent = VARIANT_LABELS[variant];
+      if(isAdmin){
+        chip.style.cursor = 'pointer';
+        chip.addEventListener('click', async () => {
+          viewedPlayer.owned[k] = !viewedPlayer.owned[k];
+          renderPlayerCollection();
+          const ok = await saveProgressForFortnite(viewedPlayer.fortnite, viewedPlayer.owned);
+          if(!ok) showToast('⚠ Échec de la sauvegarde');
+          else showToast('✓ Modifié pour ' + viewedPlayer.fortnite);
+          if(profile && profile.fortnite.toLowerCase() === viewedPlayer.fortnite.toLowerCase()){
+            owned = viewedPlayer.owned; render();
+          }
+        });
+      }
+      row.appendChild(chip);
+    });
+    block.appendChild(row);
+    collDiv.appendChild(block);
+  });
+  if(isAdmin){
+    const hint = document.createElement('p');
+    hint.className = 'hint';
+    hint.style.marginTop = '10px';
+    hint.textContent = 'Mode admin : clique une mutation pour l\'ajouter/retirer directement chez ce joueur.';
+    collDiv.prepend(hint);
+  }
+}
+
+function fillTradeSelects(){
+  const offerSel = document.getElementById('tradeOfferSelect');
+  const wantSel = document.getElementById('tradeWantSelect');
+  offerSel.innerHTML = '';
+  wantSel.innerHTML = '';
+  SPRITES.forEach(s => s.variants.forEach(variant => {
+    const k = keyFor(s.id, variant);
+    if(owned[k]){
+      const opt = document.createElement('option');
+      opt.value = k; opt.textContent = s.emoji + ' ' + s.name + ' — ' + VARIANT_LABELS[variant];
+      offerSel.appendChild(opt);
+    }
+    if(viewedPlayer.owned[k]){
+      const opt2 = document.createElement('option');
+      opt2.value = k; opt2.textContent = s.emoji + ' ' + s.name + ' — ' + VARIANT_LABELS[variant];
+      wantSel.appendChild(opt2);
+    }
+  }));
+  if(offerSel.options.length === 0){ offerSel.innerHTML = '<option value="">Tu n\'as encore aucun esprit</option>'; }
+  if(wantSel.options.length === 0){ wantSel.innerHTML = '<option value="">Ce joueur n\'a encore aucun esprit</option>'; }
+}
+
+document.getElementById('tradeSubmit').addEventListener('click', async () => {
+  const offer = document.getElementById('tradeOfferSelect').value;
+  const want = document.getElementById('tradeWantSelect').value;
+  if(!offer || !want){ showToast('⚠ Choisis un esprit des deux côtés'); return; }
+  const btn = document.getElementById('tradeSubmit');
+  btn.disabled = true;
+  try{
+    const trade = {
+      id: 'tr' + Date.now() + Math.floor(Math.random()*1000),
+      from_fortnite: profile.fortnite,
+      to_fortnite: viewedPlayer.fortnite,
+      offer_key: offer,
+      want_key: want,
+      message: document.getElementById('tradeMessage').value.trim(),
+      status: 'pending',
+      created_at: new Date().toISOString()
+    };
+    const res = await sb('trades', { method:'POST', headers:{'Prefer':'return=minimal'}, body: JSON.stringify(trade) });
+    if(!res.ok){ const t = await res.text().catch(()=>''); showToast('⚠ Erreur (' + res.status + '): ' + t.slice(0,100)); btn.disabled=false; return; }
+    showToast('✓ Proposition envoyée à ' + viewedPlayer.fortnite);
+    document.getElementById('tradeMessage').value = '';
+  }catch(e){ showToast('⚠ Erreur réseau'); }
+  btn.disabled = false;
+});
+
+document.getElementById('playerModalClose').addEventListener('click', () => {
+  document.getElementById('playerModal').classList.add('hidden');
+  if(searchFromAdmin) document.getElementById('adminMenuModal').classList.remove('hidden');
+});
+
+async function saveProgressForFortnite(fortnite, ownedObj){
+  try{
+    const res = await sb('progress?on_conflict=fortnite', {
+      method:'POST',
+      headers:{ 'Prefer':'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify({ fortnite, owned: ownedObj, updated_at: new Date().toISOString() })
+    });
+    return res.ok;
+  }catch(e){ return false; }
+}
+
+// ---------- Mes échanges ----------
+document.getElementById('myTradesBtn').addEventListener('click', openMyTrades);
+document.getElementById('myTradesClose').addEventListener('click', () => {
+  document.getElementById('myTradesModal').classList.add('hidden');
+});
+async function openMyTrades(){
+  if(!profile){ showToast('⚠ Connecte-toi d\'abord'); return; }
+  const list = document.getElementById('myTradesList');
+  list.innerHTML = '<div style="color:var(--muted); font-size:12px;">Chargement...</div>';
+  document.getElementById('myTradesModal').classList.remove('hidden');
+  try{
+    const res = await sb('trades?or=(from_fortnite.eq.' + encodeURIComponent(profile.fortnite) + ',to_fortnite.eq.' + encodeURIComponent(profile.fortnite) + ')&select=*&order=created_at.desc');
+    if(!res.ok){ list.innerHTML = '<div style="color:var(--muted); font-size:12px;">Erreur de chargement.</div>'; return; }
+    const trades = await res.json();
+    if(trades.length === 0){ list.innerHTML = '<div style="color:var(--muted); font-size:12px; text-align:center; padding:20px 0;">Aucun échange pour l\'instant.</div>'; return; }
+    list.innerHTML = '';
+    trades.forEach(t => {
+      const incoming = t.to_fortnite.toLowerCase() === profile.fortnite.toLowerCase();
+      const item = document.createElement('div');
+      item.className = 'ticket-item';
+      const statusLabel = t.status === 'accepted' ? 'Acceptée' : (t.status === 'declined' ? 'Refusée' : 'En attente');
+      const statusClass = t.status === 'accepted' ? 'answered' : (t.status === 'declined' ? '' : 'open');
+      item.innerHTML = `
+        <div class="th">
+          <div class="who">${incoming ? 'De ' + t.from_fortnite : 'À ' + t.to_fortnite}</div>
+          <span class="status-badge ${statusClass}">${statusLabel}</span>
+        </div>
+        <div class="ticket-date">${new Date(t.created_at).toLocaleString('fr-FR', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div>
+        <div style="font-size:12.5px; margin-top:6px;">${incoming ? 'Offre' : 'Tu offres'} : <strong>${describeEspritKey(t.offer_key)}</strong></div>
+        <div style="font-size:12.5px;">${incoming ? 'Contre' : 'Tu veux'} : <strong>${describeEspritKey(t.want_key)}</strong></div>
+        ${t.message ? `<div style="font-size:12px; color:var(--muted); margin-top:4px;">"${t.message.replace(/</g,'&lt;')}"</div>` : ''}
+      `;
+      if(incoming && t.status === 'pending'){
+        const actions = document.createElement('div');
+        actions.style.cssText = 'display:flex; gap:8px; margin-top:8px;';
+        const acceptBtn = document.createElement('button');
+        acceptBtn.type = 'button'; acceptBtn.textContent = 'Accepter';
+        acceptBtn.style.cssText = 'flex:1; border:none; cursor:pointer; background:var(--teal); color:#06131a; padding:8px; border-radius:8px; font-weight:700; font-size:12px;';
+        const declineBtn = document.createElement('button');
+        declineBtn.type = 'button'; declineBtn.textContent = 'Refuser';
+        declineBtn.style.cssText = 'flex:1; border:1px solid var(--line); cursor:pointer; background:var(--panel-2); color:var(--muted); padding:8px; border-radius:8px; font-weight:700; font-size:12px;';
+        const respond = async (status) => {
+          acceptBtn.disabled = true; declineBtn.disabled = true;
+          const r = await sb('trades?id=eq.' + encodeURIComponent(t.id), { method:'PATCH', headers:{'Prefer':'return=minimal'}, body: JSON.stringify({status}) });
+          if(!r.ok){ showToast('⚠ Échec'); acceptBtn.disabled=false; declineBtn.disabled=false; return; }
+          showToast(status === 'accepted' ? '✓ Échange accepté — contactez-vous sur Discord' : 'Échange refusé');
+          openMyTrades();
+        };
+        acceptBtn.addEventListener('click', () => respond('accepted'));
+        declineBtn.addEventListener('click', () => respond('declined'));
+        actions.appendChild(acceptBtn); actions.appendChild(declineBtn);
+        item.appendChild(actions);
+      }
+      list.appendChild(item);
+    });
+  }catch(e){ list.innerHTML = '<div style="color:var(--muted); font-size:12px;">Erreur réseau.</div>'; }
+}
+
+// ---------- Tableau de bord admin ----------
+async function openDashboard(){
+  const content = document.getElementById('dashboardContent');
+  content.innerHTML = '<div style="color:var(--muted); font-size:12px;">Calcul en cours...</div>';
+  document.getElementById('dashboardModal').classList.remove('hidden');
+  try{
+    const [profilesRes, progressRes] = await Promise.all([
+      sb('profiles?select=fortnite'),
+      sb('progress?select=fortnite,owned')
+    ]);
+    const profilesList = profilesRes.ok ? await profilesRes.json() : [];
+    const progressList = progressRes.ok ? await progressRes.json() : [];
+
+    const totalPlayers = profilesList.length;
+    const completions = progressList.map(p => {
+      const count = Object.values(p.owned || {}).filter(Boolean).length;
+      return { fortnite: p.fortnite, count, pct: Math.round((count/TOTAL)*100) };
+    });
+    const avgPct = completions.length ? Math.round(completions.reduce((s,c)=>s+c.pct,0)/completions.length) : 0;
+
+    const ownedCountByKey = {};
+    SPRITES.forEach(s => s.variants.forEach(v => ownedCountByKey[keyFor(s.id,v)] = 0));
+    progressList.forEach(p => {
+      Object.keys(p.owned || {}).forEach(k => { if(p.owned[k] && ownedCountByKey.hasOwnProperty(k)) ownedCountByKey[k]++; });
+    });
+    let rarestKey = null, rarestCount = Infinity;
+    Object.entries(ownedCountByKey).forEach(([k,c]) => { if(c < rarestCount){ rarestCount = c; rarestKey = k; } });
+
+    const top5 = completions.sort((a,b)=>b.pct-a.pct).slice(0,5);
+
+    content.innerHTML = `
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;">
+        <div style="background:var(--panel-2); border-radius:10px; padding:12px;">
+          <div style="font-size:22px; font-weight:700;">${totalPlayers}</div>
+          <div style="font-size:11px; color:var(--muted);">Joueurs inscrits</div>
+        </div>
+        <div style="background:var(--panel-2); border-radius:10px; padding:12px;">
+          <div style="font-size:22px; font-weight:700;">${avgPct}%</div>
+          <div style="font-size:11px; color:var(--muted);">Complétion moyenne</div>
+        </div>
+      </div>
+      <div style="background:var(--panel-2); border-radius:10px; padding:12px; margin-bottom:16px; font-size:12.5px;">
+        <strong>Le plus rare chez vous :</strong> ${rarestKey ? describeEspritKey(rarestKey) + ' (' + rarestCount + ' joueur' + (rarestCount>1?'s':'') + ')' : '—'}
+      </div>
+      <h2 style="font-size:15px; margin-bottom:8px;">🏆 Top 5 collections</h2>
+      ${top5.length === 0 ? '<div style="color:var(--muted); font-size:12px;">Personne n\'a encore de progression.</div>' : top5.map((c,i) => `
+        <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--line); font-size:13px;">
+          <span>#${i+1} ${c.fortnite}</span>
+          <span style="color:var(--teal); font-weight:700;">${c.pct}%</span>
+        </div>
+      `).join('')}
+    `;
+  }catch(e){
+    content.innerHTML = '<div style="color:var(--muted); font-size:12px;">Erreur de chargement.</div>';
+  }
+}
+document.getElementById('dashboardBack').addEventListener('click', () => {
+  document.getElementById('dashboardModal').classList.add('hidden');
+  document.getElementById('adminMenuModal').classList.remove('hidden');
+});
+
+// ---------- Export image (belle version) ----------
+function roundRect(ctx, x, y, w, h, r){
+  if(w <= 0) w = 0.1;
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.arcTo(x+w, y, x+w, y+h, r);
+  ctx.arcTo(x+w, y+h, x, y+h, r);
+  ctx.arcTo(x, y+h, x, y, r);
+  ctx.arcTo(x, y, x+w, y, r);
+  ctx.closePath();
+}
+function hexToRgba(hex, a){
+  const v = hex.replace('#','');
+  const r = parseInt(v.substring(0,2),16), g = parseInt(v.substring(2,4),16), b = parseInt(v.substring(4,6),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+const VARIANT_COLORS = {
+  normal: ['#4a5280', '#2c3357'],
+  gold: ['#ffe08a', '#c9962a'],
+  gummy: ['#ff9dc0', '#d1477c'],
+  galaxy: ['#9d7bff', '#3e6bff'],
+  holofoil: ['#7dfff2', '#2fa79e']
+};
+
+function downloadMissingImage(){
+  const missingRows = [];
+  SPRITES.forEach(sprite => {
+    sprite.variants.forEach(variant => {
+      if(!owned[keyFor(sprite.id,variant)]) missingRows.push({sprite, variant});
+    });
+  });
+  const ownedCount = countOwned();
+  const pct = Math.round((ownedCount/TOTAL)*100);
+
+  // Regroupe par rareté puis par esprit (une carte par esprit, listant les variantes manquantes)
+  const bySprite = {};
+  missingRows.forEach(r => {
+    if(!bySprite[r.sprite.id]) bySprite[r.sprite.id] = { sprite: r.sprite, variants: [] };
+    bySprite[r.sprite.id].variants.push(r.variant);
+  });
+  const groups = {};
+  RARITY_ORDER.forEach(r => groups[r] = []);
+  Object.values(bySprite).forEach(g => groups[g.sprite.rarity].push(g));
+
+  const width = 960;
+  const marginX = 40;
+  const cardW = 280, cardGap = 16;
+  const cols = 3;
+  const cardH = 118;
+  const sectionHeaderH = 46;
+  const sectionGapBottom = 22;
+  const headerH = 210;
+  const footerH = 60;
+
+  let bodyH = 0;
+  RARITY_ORDER.forEach(r => {
+    const items = groups[r];
+    if(items.length === 0) return;
+    const rows = Math.ceil(items.length / cols);
+    bodyH += sectionHeaderH + rows * (cardH + cardGap) + sectionGapBottom;
+  });
+  if(missingRows.length === 0) bodyH = 100;
+
+  const height = headerH + bodyH + footerH;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = width; canvas.height = height;
+  const ctx = canvas.getContext('2d');
+
+  // Fond
+  const bg = ctx.createLinearGradient(0,0,width,height);
+  bg.addColorStop(0, '#080a13');
+  bg.addColorStop(0.5, '#0d1120');
+  bg.addColorStop(1, '#0a0d18');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0,0,width,height);
+
+  // Halos décoratifs
+  const glow1 = ctx.createRadialGradient(width*0.1,-40,10,width*0.1,-40,420);
+  glow1.addColorStop(0,'rgba(139,92,246,0.35)'); glow1.addColorStop(1,'rgba(139,92,246,0)');
+  ctx.fillStyle = glow1; ctx.fillRect(0,0,width,420);
+  const glow2 = ctx.createRadialGradient(width*0.95,20,10,width*0.95,20,380);
+  glow2.addColorStop(0,'rgba(45,226,192,0.22)'); glow2.addColorStop(1,'rgba(45,226,192,0)');
+  ctx.fillStyle = glow2; ctx.fillRect(0,0,width,420);
+
+  // Bandeau supérieur / bordure décorative
+  const topGrad = ctx.createLinearGradient(0,0,width,0);
+  topGrad.addColorStop(0, '#2de2c0'); topGrad.addColorStop(0.5, '#8b5cf6'); topGrad.addColorStop(1, '#ff6fa5');
+  ctx.fillStyle = topGrad; ctx.fillRect(0,0,width,6);
+
+  // Titre
+  ctx.fillStyle = '#f2f4ff';
+  ctx.font = '700 38px Rajdhani, sans-serif';
+  ctx.fillText('GRIMOIRE DES ESPRITS', marginX, 66);
+  ctx.fillStyle = '#8a90b4';
+  ctx.font = '500 15px Inter, sans-serif';
+  ctx.fillText('Liste des esprits manquants · suivi non officiel', marginX, 90);
+
+  // Carte profil
+  if(profile && profile.fortnite){
+    const pillW = 300, pillH = 44, pillX = width - marginX - pillW, pillY = 30;
+    ctx.fillStyle = 'rgba(255,255,255,0.05)';
+    roundRect(ctx, pillX, pillY, pillW, pillH, 12); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.12)'; ctx.lineWidth = 1;
+    roundRect(ctx, pillX, pillY, pillW, pillH, 12); ctx.stroke();
+    const avGrad = ctx.createLinearGradient(pillX+10,0,pillX+40,0);
+    avGrad.addColorStop(0,'#2de2c0'); avGrad.addColorStop(1,'#8b5cf6');
+    ctx.fillStyle = avGrad;
+    ctx.beginPath(); ctx.arc(pillX+27, pillY+22, 15, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#06131a';
+    ctx.font = '700 13px Rajdhani, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(profile.fortnite.slice(0,2).toUpperCase(), pillX+27, pillY+27);
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#f2f4ff';
+    ctx.font = '700 14px Rajdhani, sans-serif';
+    ctx.fillText(profile.fortnite, pillX+50, pillY+19);
+    ctx.fillStyle = '#8a90b4';
+    ctx.font = '400 11.5px Inter, sans-serif';
+    ctx.fillText('Discord: ' + (profile.discord || '—'), pillX+50, pillY+34);
+  }
+
+  // Barre de progression stylée
+  const barX = marginX, barY = 118, barW = width - marginX*2, barH = 16;
+  ctx.fillStyle = 'rgba(255,255,255,0.06)';
+  roundRect(ctx, barX, barY, barW, barH, 8); ctx.fill();
+  const fillGrad = ctx.createLinearGradient(barX,0,barX+barW,0);
+  fillGrad.addColorStop(0, '#2de2c0'); fillGrad.addColorStop(1, '#8b5cf6');
+  ctx.fillStyle = fillGrad;
+  roundRect(ctx, barX, barY, Math.max(barW*(pct/100), pct>0?14:0), barH, 8); ctx.fill();
+  ctx.fillStyle = '#f2f4ff';
+  ctx.font = '700 18px Rajdhani, sans-serif';
+  ctx.fillText(ownedCount + ' / ' + TOTAL + ' esprits obtenus  ·  ' + pct + '%', barX, barY + 42);
+
+  ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+  ctx.beginPath(); ctx.moveTo(marginX, headerH-20); ctx.lineTo(width-marginX, headerH-20); ctx.stroke();
+
+  if(missingRows.length === 0){
+    ctx.fillStyle = '#2de2c0';
+    ctx.font = '700 24px Rajdhani, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('🎉 Collection complète — plus aucun esprit manquant !', width/2, headerH + 50);
+    ctx.textAlign = 'left';
+  } else {
+    let y = headerH;
+    RARITY_ORDER.forEach(rk => {
+      const items = groups[rk];
+      if(items.length === 0) return;
+      const color = RARITY_HEX[rk];
+
+      // En-tête de section
+      ctx.fillStyle = color;
+      roundRect(ctx, marginX, y+10, 5, 22, 3); ctx.fill();
+      ctx.fillStyle = '#f2f4ff';
+      ctx.font = '700 19px Rajdhani, sans-serif';
+      ctx.fillText(RARITY_LABEL[rk].toUpperCase(), marginX + 16, y + 27);
+      ctx.fillStyle = hexToRgba(color, 0.85);
+      ctx.font = '700 12px Inter, sans-serif';
+      const countLabel = items.length + ' esprit' + (items.length>1?'s':'');
+      ctx.fillText(countLabel, marginX + 16 + ctx.measureText(RARITY_LABEL[rk].toUpperCase()).width + 12, y + 26);
+      y += sectionHeaderH;
+
+      items.forEach((g, i) => {
+        const col = i % cols, row = Math.floor(i / cols);
+        const cx = marginX + col * (cardW + cardGap);
+        const cy = y + row * (cardH + cardGap);
+
+        // Carte
+        const cardGrad = ctx.createLinearGradient(cx, cy, cx, cy+cardH);
+        cardGrad.addColorStop(0, 'rgba(255,255,255,0.055)');
+        cardGrad.addColorStop(1, 'rgba(255,255,255,0.02)');
+        ctx.fillStyle = cardGrad;
+        roundRect(ctx, cx, cy, cardW, cardH, 14); ctx.fill();
+        ctx.strokeStyle = hexToRgba(color, 0.45);
+        ctx.lineWidth = 1.4;
+        roundRect(ctx, cx, cy, cardW, cardH, 14); ctx.stroke();
+
+        // Lueur rareté en haut de carte
+        const topBar = ctx.createLinearGradient(cx,0,cx+cardW,0);
+        topBar.addColorStop(0, hexToRgba(color,0)); topBar.addColorStop(0.5, hexToRgba(color,0.9)); topBar.addColorStop(1, hexToRgba(color,0));
+        ctx.fillStyle = topBar;
+        ctx.fillRect(cx+14, cy, cardW-28, 3);
+
+        // Icône
+        const iconR = 24;
+        const iconCx = cx + 34, iconCy = cy + 40;
+        const iconGrad = ctx.createRadialGradient(iconCx, iconCy, 2, iconCx, iconCy, iconR);
+        iconGrad.addColorStop(0, hexToRgba(color,0.35)); iconGrad.addColorStop(1, hexToRgba(color,0.05));
+        ctx.fillStyle = iconGrad;
+        ctx.beginPath(); ctx.arc(iconCx, iconCy, iconR, 0, Math.PI*2); ctx.fill();
+        ctx.strokeStyle = hexToRgba(color,0.5); ctx.lineWidth = 1.2;
+        ctx.beginPath(); ctx.arc(iconCx, iconCy, iconR, 0, Math.PI*2); ctx.stroke();
+        ctx.font = '24px sans-serif';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(g.sprite.emoji, iconCx, iconCy+1);
+        ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+
+        // Nom
+        ctx.fillStyle = '#f2f4ff';
+        ctx.font = '700 15px Rajdhani, sans-serif';
+        const name = g.sprite.name.length > 20 ? g.sprite.name.slice(0,19)+'…' : g.sprite.name;
+        ctx.fillText(name, cx + 66, cy + 33);
+
+        // Badges variantes manquantes
+        let vx = cx + 66, vy = cy + 46;
+        const maxRight = cx + cardW - 12;
+        g.variants.forEach(variant => {
+          const label = VARIANT_LABELS[variant];
+          const vcolors = VARIANT_COLORS[variant];
+          ctx.font = '700 10.5px Inter, sans-serif';
+          const w = ctx.measureText(label).width + 16;
+          if(vx + w > maxRight){ vx = cx + 66; vy += 22; }
+          const vgrad = ctx.createLinearGradient(vx,0,vx+w,0);
+          vgrad.addColorStop(0, vcolors[0]); vgrad.addColorStop(1, vcolors[1]);
+          ctx.fillStyle = vgrad;
+          roundRect(ctx, vx, vy, w, 18, 6); ctx.fill();
+          ctx.fillStyle = (variant==='gold'||variant==='holofoil'||variant==='normal') ? '#10131f' : '#1a0c14';
+          ctx.fillStyle = variant==='normal' ? '#e8eaf6' : '#1a0c14';
+          ctx.fillText(label, vx+8, vy+13);
+          vx += w + 6;
+        });
+      });
+      const rows = Math.ceil(items.length / cols);
+      y += rows * (cardH + cardGap) + sectionGapBottom;
+    });
+  }
+
+  // Pied de page
+  ctx.fillStyle = 'rgba(255,255,255,0.08)';
+  ctx.fillRect(marginX, height-footerH+10, width-marginX*2, 1);
+  ctx.fillStyle = '#565d80';
+  ctx.font = '400 12px Inter, sans-serif';
+  ctx.fillText('Non affilié à Epic Games. Généré depuis le Grimoire des Esprits.', marginX, height-22);
+  ctx.textAlign = 'right';
+  ctx.fillText(new Date().toLocaleDateString('fr-FR'), width-marginX, height-22);
+  ctx.textAlign = 'left';
+
+  try{
+    const link = document.createElement('a');
+    link.download = 'esprits-manquants.png';
+    link.href = canvas.toDataURL('image/png');
+    document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    showToast('✓ Image téléchargée');
+  }catch(e){
+    showToast('⚠ Échec du téléchargement');
+  }
+}
+document.getElementById('downloadBtn').addEventListener('click', downloadMissingImage);
+
+updateProfileChip();
+render();
+loadAnnouncement();
+tryRestoreSession().then(restored => {
+  if(!restored){
+    document.getElementById('authGate').classList.remove('hidden');
+  }
+});
+</script>
+</body>
+</html>
