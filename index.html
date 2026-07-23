@@ -161,6 +161,7 @@
   .chip[data-variant="galaxy"].checked{ background:linear-gradient(120deg, var(--galaxy1), var(--galaxy2));}
   .chip[data-variant="holofoil"].checked{ background:linear-gradient(120deg, var(--holo), #2fa79e); color:#04211f;}
   .chip[data-variant="holofoil"].checked .box{color:#04211f;}
+  .chip[data-variant="cube"].checked{ background:linear-gradient(120deg, #8b5cf6, #2a1a4d); }
 
   .pick-chip{
     border-radius:12px; padding:10px 12px; font-size:13px; font-weight:600; cursor:pointer;
@@ -751,7 +752,7 @@
 
 <script>
 
-const VARIANT_LABELS = { normal:"Normal", gold:"Or", gummy:"Gélifié", galaxy:"Galaxie", holofoil:"Holofoil" };
+const VARIANT_LABELS = { normal:"Normal", gold:"Or", gummy:"Gélifié", galaxy:"Galaxie", holofoil:"Holofoil", cube:"Cube" };
 const ADMIN_CODE = "285028";
 
 
@@ -772,9 +773,9 @@ async function sb(path, options={}){
 
 const SPRITES = [
   { id:"water", name:"Esprit de l'Eau", emoji:"💧", rarity:"rare", ability:"Régénère les boucliers dans l'eau, pour toi et ton équipe.", variants:["normal","gold","gummy","galaxy","holofoil"] },
-  { id:"earth", name:"Esprit de la Terre", emoji:"🌍", rarity:"rare", ability:"Chance d'objets plus rares en fouillant les coffres.", variants:["normal","gold","gummy","galaxy"] },
-  { id:"fire", name:"Esprit du Feu", emoji:"🔥", rarity:"rare", ability:"Déclenche une explosion de feu après assez de dégâts infligés.", variants:["normal","gold","gummy","galaxy","holofoil"] },
-  { id:"fishy", name:"Esprit Poisson", emoji:"🐟", rarity:"rare", ability:"Augmente la vitesse de nage, encore plus sous les tirs.", variants:["normal","gold","gummy","galaxy"] },
+  { id:"earth", name:"Esprit de la Terre", emoji:"🌍", rarity:"rare", ability:"Chance d'objets plus rares en fouillant les coffres.", variants:["normal","gold","gummy","galaxy","cube"] },
+  { id:"fire", name:"Esprit du Feu", emoji:"🔥", rarity:"rare", ability:"Déclenche une explosion de feu après assez de dégâts infligés.", variants:["normal","gold","gummy","galaxy","holofoil","cube"] },
+  { id:"fishy", name:"Esprit Poisson", emoji:"🐟", rarity:"rare", ability:"Augmente la vitesse de nage, encore plus sous les tirs.", variants:["normal","gold","gummy","galaxy","cube"] },
   { id:"air", name:"Esprit de l'Air", emoji:"🌬️", rarity:"rare", ability:"Capacité liée au déplacement aérien.", variants:["normal","gold","gummy","galaxy","holofoil"] },
   { id:"duck", name:"Esprit Canard", emoji:"🦆", rarity:"epic", ability:"Danser ou émoter régénère les boucliers.", variants:["normal","gold","gummy","galaxy"] },
   { id:"ghost", name:"Esprit Fantôme", emoji:"👻", rarity:"epic", ability:"Te rend invisible un court instant en rechargeant.", variants:["normal","gold","gummy","galaxy","holofoil"] },
@@ -782,24 +783,16 @@ const SPRITES = [
   { id:"king", name:"Esprit Royal", emoji:"👑", rarity:"epic", ability:"Augmente les dégâts de la pioche.", variants:["normal","gold","gummy","galaxy","holofoil"] },
   { id:"aura", name:"Esprit Aura", emoji:"✨", rarity:"epic", ability:"Charge une Roche Choc après assez de dégâts infligés.", variants:["normal","gold","gummy","galaxy"] },
   { id:"striker", name:"Esprit Striker", emoji:"⚽", rarity:"epic", ability:"Déclenche l'Overdrive en escaladant ou en franchissant un obstacle.", variants:["normal","gold","gummy","galaxy","holofoil"] },
-  { id:"dream", name:"Esprit du Rêve", emoji:"💤", rarity:"legendary", ability:"Objet aléatoire à chaque niveau, butin légendaire au niveau max.", variants:["normal","gold","gummy","galaxy"] },
-  { id:"punk", name:"Esprit Punk", emoji:"🤘", rarity:"legendary", ability:"Chance de munitions infinies.", variants:["normal","gold","gummy","galaxy"] },
-  { id:"boss", name:"Esprit Boss", emoji:"💪", rarity:"legendary", ability:"Augmente la santé et le bouclier maximum.", variants:["normal","gold","gummy","galaxy"] },
+  { id:"dream", name:"Esprit du Rêve", emoji:"💤", rarity:"legendary", ability:"Objet aléatoire à chaque niveau, butin légendaire au niveau max.", variants:["normal","gold","gummy","galaxy","cube"] },
+  { id:"punk", name:"Esprit Punk", emoji:"🤘", rarity:"legendary", ability:"Chance de munitions infinies.", variants:["normal","gold","gummy","galaxy","cube"] },
+  { id:"boss", name:"Esprit Boss", emoji:"💪", rarity:"legendary", ability:"Augmente la santé et le bouclier maximum.", variants:["normal","gold","gummy","galaxy","cube"] },
   { id:"seven", name:"Esprit Seven", emoji:"7️⃣", rarity:"legendary", ability:"Capacité spéciale liée à l'événement Seven.", variants:["normal","gold","gummy","galaxy","holofoil"] },
-  { id:"batman", name:"Esprit Batman", emoji:"🦇", rarity:"mythic", ability:"Déploie la cape en plein vol, trouve plus d'esprits rares.", variants:["normal","gold","gummy","galaxy","holofoil"] },
-  { id:"grimreaper", name:"Esprit Grim Reaper", emoji:"💀", rarity:"mythic", ability:"Repère sur la carte tout joueur qui te blesse.", variants:["normal","gold","gummy","galaxy"] },
+  { id:"batman", name:"Esprit Batman", emoji:"🦇", rarity:"mythic", ability:"Déploie la cape en plein vol, trouve plus d'esprits rares.", variants:["normal","gold","gummy","galaxy","holofoil","cube"] },
+  { id:"grimreaper", name:"Esprit Grim Reaper", emoji:"💀", rarity:"mythic", ability:"Repère sur la carte tout joueur qui te blesse.", variants:["normal","gold","gummy","galaxy","cube"] },
   { id:"zeropoint", name:"Esprit Zero Point", emoji:"⚡", rarity:"mythic", ability:"Crée une mini bulle de protection quand tu te soignes.", variants:["normal","gold","gummy","galaxy"] },
   { id:"burntpeanut", name:"Esprit Burnt Peanut", emoji:"🥜", rarity:"mythic", ability:"Chance de butin bonus, voire mythique, à l'élimination.", variants:["normal"] },
   { id:"vinijr", name:"Esprit Vini Jr.", emoji:"⚽", rarity:"mythic", ability:"Un sprint débloque un glissé qui blesse et booste cadence/rechargement.", variants:["normal"] },
   { id:"pollo", name:"Esprit Pollo", emoji:"🐔", rarity:"mythic", ability:"Régénère les boucliers de l'équipe après une élimination.", variants:["normal"] },
-  { id:"cube1", name:"Esprit Cube Ombre", emoji:"🟪", rarity:"epic", ability:"Esprit Cube — capacité liée au Cube.", variants:["normal","gold","gummy","galaxy"] },
-  { id:"cube2", name:"Esprit Cube Kevin", emoji:"⬛", rarity:"epic", ability:"Esprit Cube — capacité liée au Cube.", variants:["normal","gold","gummy","galaxy"] },
-  { id:"cube3", name:"Esprit Cube Cristal", emoji:"🔷", rarity:"legendary", ability:"Esprit Cube — capacité liée au Cube.", variants:["normal","gold","gummy","galaxy"] },
-  { id:"cube4", name:"Esprit Cube Corrompu", emoji:"🟣", rarity:"legendary", ability:"Esprit Cube — capacité liée au Cube.", variants:["normal","gold","gummy","galaxy"] },
-  { id:"cube5", name:"Esprit Cube Néant", emoji:"⚫", rarity:"epic", ability:"Esprit Cube — capacité liée au Cube.", variants:["normal","gold","gummy","galaxy"] },
-  { id:"cube6", name:"Esprit Cube Runique", emoji:"🔮", rarity:"legendary", ability:"Esprit Cube — capacité liée au Cube.", variants:["normal","gold","gummy","galaxy"] },
-  { id:"cube7", name:"Esprit Cube Fracturé", emoji:"💠", rarity:"mythic", ability:"Esprit Cube — capacité liée au Cube.", variants:["normal","gold","gummy","galaxy"] },
-  { id:"cube8", name:"Esprit Cube Origine", emoji:"🌀", rarity:"mythic", ability:"Esprit Cube — capacité liée au Cube.", variants:["normal","gold","gummy","galaxy"] },
 ];
 
 const RARITY_LABEL = { rare:"Rare", epic:"Épique", legendary:"Légendaire", mythic:"Mythique" };
@@ -1395,6 +1388,10 @@ document.getElementById('openAdminBtn').addEventListener('click', () => {
 });
 document.getElementById('adminCodeCancel').addEventListener('click', () => {
   document.getElementById('adminCodeModal').classList.add('hidden');
+  if(document.getElementById('maintenanceGate').dataset.wasOpen === '1'){
+    document.getElementById('maintenanceGate').dataset.wasOpen = '0';
+    document.getElementById('maintenanceGate').classList.remove('hidden');
+  }
 });
 document.getElementById('adminCodeSubmit').addEventListener('click', async () => {
   const code = document.getElementById('inputAdminCode').value.trim();
@@ -1463,7 +1460,7 @@ async function openAdminPanel(){
     item.innerHTML = `
       <div class="th">
         <div class="who">${t.fortnite} <span class="disc">· Discord: ${t.discord || '—'}</span></div>
-        <span class="status-badge ${t.status === 'answered' ? 'answered' : 'open'}">${t.status === 'answered' ? 'Répondu' : 'Ouvert'}</span>
+        <span class="status-badge ${t.status === 'answered' ? 'answered' : (t.status === 'closed' ? 'answered' : 'open')}">${t.status === 'answered' ? 'Répondu' : (t.status === 'closed' ? 'Fermé' : 'Ouvert')}</span>
       </div>
       <div class="ticket-date">${dateTxt}</div>
       <div class="ticket-esprits">${espritsHtml}</div>
@@ -1471,9 +1468,20 @@ async function openAdminPanel(){
       <div class="ticket-reply">
         ${t.response ? `<div class="existing"><strong>Réponse :</strong> ${t.response.replace(/</g,'&lt;')}</div>` : ''}
         <textarea placeholder="Écrire une réponse..."></textarea>
-        <button type="button">Envoyer la réponse</button>
+        <div style="display:flex; gap:6px; margin-top:6px;">
+        <button type="button" class="replyBtnEl" style="flex:1;">Envoyer la réponse</button>
+        <button type="button" class="closeBtnEl" style="flex:none; background:var(--panel-2); color:var(--muted); border:1px solid var(--line); padding:7px 14px; border-radius:8px; font-weight:700; font-size:12px; cursor:pointer;">Fermer</button>
+        </div>
       </div>
     `;
+    const closeBtn = item.querySelector('.closeBtnEl');
+    closeBtn.addEventListener('click', async () => {
+      closeBtn.disabled = true;
+      const res = await sb('tickets?id=eq.' + encodeURIComponent(t.id), { method:'PATCH', headers:{'Prefer':'return=minimal'}, body: JSON.stringify({ status:'closed' }) });
+      if(!res.ok){ showToast('⚠ Échec'); closeBtn.disabled = false; return; }
+      showToast('✓ Ticket fermé');
+      openAdminPanel();
+    });
     const textarea = item.querySelector('textarea');
     const replyBtn = item.querySelector('.ticket-reply button');
     replyBtn.addEventListener('click', async () => {
@@ -2065,6 +2073,8 @@ document.getElementById('maintenanceOff').addEventListener('click', async () => 
 });
 document.getElementById('maintenanceAdminLink').addEventListener('click', () => {
   document.getElementById('inputAdminCode').value = '';
+  document.getElementById('maintenanceGate').dataset.wasOpen = '1';
+  document.getElementById('maintenanceGate').classList.add('hidden');
   document.getElementById('adminCodeModal').classList.remove('hidden');
 });
 
@@ -2344,7 +2354,8 @@ const VARIANT_COLORS = {
   gold: ['#ffe08a', '#c9962a'],
   gummy: ['#ff9dc0', '#d1477c'],
   galaxy: ['#9d7bff', '#3e6bff'],
-  holofoil: ['#7dfff2', '#2fa79e']
+  holofoil: ['#7dfff2', '#2fa79e'],
+  cube: ['#8b5cf6', '#2a1a4d']
 };
 
 function downloadMissingImage(){
@@ -2622,7 +2633,7 @@ setInterval(async () => {
     // Messages perso / effets envoyés par l'admin
     checkScreenEvents();
   }
-}, 15000);
+}, 4000);
 </script>
 </body>
 </html>
