@@ -2605,7 +2605,8 @@ setInterval(async () => {
   loadAnnouncement();
 
   // Maintenance : si activée entre-temps et qu'on n'est pas admin, on bloque immédiatement
-  if(!isAdmin){
+  const adminCodeOpen = !document.getElementById('adminCodeModal').classList.contains('hidden');
+  if(!isAdmin && !adminCodeOpen){
     const maintenanceMsg = await checkMaintenance();
     if(maintenanceMsg && document.getElementById('maintenanceGate').classList.contains('hidden')){
       document.getElementById('maintenanceText').textContent = maintenanceMsg;
