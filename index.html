@@ -498,6 +498,11 @@
     <div style="font-size:44px; margin-bottom:8px;">🛠️</div>
     <h2>Maintenance en cours</h2>
     <p class="hint" id="maintenanceText" style="font-size:14px;">Le site revient bientôt, merci de ta patience !</p>
+    <div class="field" style="text-align:left; margin-top:14px;">
+      <label for="siteAccessCodeInput">Code d'accès</label>
+      <input type="password" id="siteAccessCodeInput" inputmode="numeric" placeholder="••••">
+    </div>
+    <button class="btn-primary" id="siteAccessSubmit" type="button" style="width:100%;">Accéder au site</button>
     <button id="maintenanceAdminLink" type="button" style="margin-top:18px; background:none; border:none; color:var(--muted); font-size:11px; text-decoration:underline; cursor:pointer;">Accès admin</button>
   </div>
 </div>
@@ -861,6 +866,8 @@
 const VARIANT_LABELS = { normal:"Normal", gold:"Or", gummy:"Gélifié", galaxy:"Galaxie", holofoil:"Holofoil", cube:"Cube" };
 const ADMIN_CODE = "285028";
 const MAINTENANCE_CODE = "0963";
+const SITE_ACCESS_CODE = "3576";
+let siteAccessGranted = false;
 
 
 const SUPABASE_URL = "https://cgyknbjnumuxvvlpvopa.supabase.co";
@@ -2320,6 +2327,16 @@ document.getElementById('maintenanceOff').addEventListener('click', async () => 
   document.getElementById('maintenanceModal').classList.add('hidden');
   document.getElementById('adminMenuModal').classList.remove('hidden');
 });
+document.getElementById('siteAccessSubmit').addEventListener('click', () => {
+  const code = document.getElementById('siteAccessCodeInput').value.trim();
+  if(code !== SITE_ACCESS_CODE){ showToast('⚠ Code incorrect'); return; }
+  siteAccessGranted = true;
+  document.getElementById('siteAccessCodeInput').value = '';
+  document.getElementById('maintenanceGate').classList.add('hidden');
+  tryRestoreSession().then(restored => {
+    if(!restored){ document.getElementById('authGate').classList.remove('hidden'); }
+  });
+});
 document.getElementById('maintenanceAdminLink').addEventListener('click', () => {
   document.getElementById('inputAdminCode').value = '';
   document.getElementById('maintenanceGate').dataset.wasOpen = '1';
@@ -3082,7 +3099,7 @@ setInterval(async () => {
 
   // Maintenance : si activée entre-temps et qu'on n'est pas admin, on bloque immédiatement
   const adminCodeOpen = !document.getElementById('adminCodeModal').classList.contains('hidden');
-  if(!isAdmin && !adminCodeOpen){
+  if(!isAdmin && !adminCodeOpen && !siteAccessGranted){
     const maintenanceMsg = await checkMaintenance();
     if(maintenanceMsg && document.getElementById('maintenanceGate').classList.contains('hidden')){
       document.getElementById('maintenanceText').textContent = maintenanceMsg;
