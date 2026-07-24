@@ -220,6 +220,14 @@
   .confetti-piece{ position:fixed; top:0; font-size:22px; z-index:198; pointer-events:none; animation: confettiFall linear forwards; }
 
   @keyframes shakeScreen{ 0%,100%{transform:translateX(0);} 20%{transform:translateX(-10px);} 40%{transform:translateX(10px);} 60%{transform:translateX(-8px);} 80%{transform:translateX(8px);} }
+
+  #effectOverlay{ position:fixed; inset:0; z-index:201; pointer-events:none; display:none; }
+  @keyframes rainbowCycle{ 0%{background:#ff0055;} 20%{background:#ff9500;} 40%{background:#ffee00;} 60%{background:#00e0ff;} 80%{background:#7c3aed;} 100%{background:#ff0055;} }
+  .rainbow-active{ animation: rainbowCycle 0.5s linear infinite; opacity:0.6; }
+  @keyframes sirenCycle{ 0%,100%{background:rgba(255,0,60,0.55);} 50%{background:rgba(0,90,255,0.55);} }
+  .siren-active{ animation: sirenCycle 0.4s steps(1) infinite; }
+  body.upsidedown-active{ transform:rotate(180deg); transition:transform 0.6s ease; }
+  body{ transition:transform 0.6s ease; }
   body.shake-active{ animation: shakeScreen 0.5s ease; }
 
   .modal-backdrop{
@@ -598,9 +606,15 @@
       <button class="btn-primary" id="personalMsgSendBtn" type="button" style="width:100%; margin-top:8px;">Envoyer</button>
     </div>
     <div id="effectChooseBlock" style="display:none; margin-top:10px; gap:8px; flex-wrap:wrap;">
-      <button class="pick-chip" id="effectConfetti" type="button" style="flex:1;">🎉 Confettis</button>
-      <button class="pick-chip" id="effectFlash" type="button" style="flex:1;">⚡ Flash</button>
-      <button class="pick-chip" id="effectShake" type="button" style="flex:1;">💥 Secousse</button>
+      <button class="pick-chip" data-effect="confetti" type="button" style="flex:1; min-width:100px;">🎉 Confettis</button>
+      <button class="pick-chip" data-effect="flash" type="button" style="flex:1; min-width:100px;">⚡ Flash</button>
+      <button class="pick-chip" data-effect="shake" type="button" style="flex:1; min-width:100px;">💥 Secousse</button>
+      <button class="pick-chip" data-effect="blackout" type="button" style="flex:1; min-width:100px;">⬛ Fondu noir</button>
+      <button class="pick-chip" data-effect="disco" type="button" style="flex:1; min-width:100px;">🪩 Disco</button>
+      <button class="pick-chip" data-effect="upsidedown" type="button" style="flex:1; min-width:100px;">🙃 Écran à l'envers</button>
+      <button class="pick-chip" data-effect="snow" type="button" style="flex:1; min-width:100px;">❄️ Neige</button>
+      <button class="pick-chip" data-effect="hearts" type="button" style="flex:1; min-width:100px;">💖 Pluie de cœurs</button>
+      <button class="pick-chip" data-effect="glitch" type="button" style="flex:1; min-width:100px;">👾 Glitch</button>
     </div>
 
     <div id="tradeProposeBlock" style="display:none; margin-top:14px; border-top:1px solid var(--line); padding-top:14px;">
@@ -664,6 +678,10 @@
     <div class="field">
       <label for="maintenanceMsgInput">Message affiché aux joueurs</label>
       <input type="text" id="maintenanceMsgInput" maxlength="160" placeholder="Le site revient bientôt !">
+    </div>
+    <div class="field">
+      <label for="maintenanceCodeInput">Code de confirmation</label>
+      <input type="password" id="maintenanceCodeInput" inputmode="numeric" placeholder="••••••">
     </div>
     <div class="modal-actions">
       <button class="btn-ghost" id="maintenanceBack" type="button">Retour</button>
@@ -754,6 +772,8 @@
 
 const VARIANT_LABELS = { normal:"Normal", gold:"Or", gummy:"Gélifié", galaxy:"Galaxie", holofoil:"Holofoil", cube:"Cube" };
 const ADMIN_CODE = "285028";
+const MAINTENANCE_CODE = "0963";
+const MAINTENANCE_CODE = "0964";
 
 
 const SUPABASE_URL = "https://cgyknbjnumuxvvlpvopa.supabase.co";
@@ -805,6 +825,8 @@ let currentFilter = "all";
 let currentRarity = "all";
 let profile = null; // { fortnite, discord }, rempli après connexion
 let accessToken = null;
+let bannedFortnite = null; // pseudo actuellement bloqué par un ban, pour pouvoir restaurer sans reconnexion
+let bannedToken = null;
 let ticketSelection = [];
 
 function keyFor(spriteId, variant){ return spriteId + ":" + variant; }
@@ -917,7 +939,8 @@ async function tryRestoreSession(){
     const meta = (user && user.user_metadata) || {};
     const ban = await checkBan(meta.fortnite || '');
     if(ban){
-      try{ localStorage.removeItem('grimoire_token'); }catch(e){}
+      bannedFortnite = meta.fortnite || '';
+      bannedToken = token;
       showBanScreen(ban);
       return true; // écran de ban affiché, ne pas montrer aussi le portail de connexion
     }
@@ -1021,6 +1044,14 @@ function toggle(spriteId, variant){
   render();
   saveProgress();
 }
+function masteredKey(spriteId, variant){ return 'mst:' + keyFor(spriteId, variant); }
+function toggleMastered(spriteId, variant){
+  const k = keyFor(spriteId, variant);
+  if(!owned[k]){ showToast('⚠ Il faut d\'abord l\'obtenir'); return; }
+  owned[masteredKey(spriteId, variant)] = !owned[masteredKey(spriteId, variant)];
+  render();
+  saveProgress();
+}
 function countOwned(){
   let n = 0;
   SPRITES.forEach(s => s.variants.forEach(v => { if(owned[keyFor(s.id,v)]) n++; }));
@@ -1064,14 +1095,18 @@ function render(){
     chips.className = 'chips';
     sprite.variants.forEach(variant => {
       const isOwned = !!owned[keyFor(sprite.id,variant)];
+      const isMastered = !!owned[masteredKey(sprite.id,variant)];
       if(currentFilter === 'owned' && !isOwned) return;
       if(currentFilter === 'missing' && isOwned) return;
       const chip = document.createElement('div');
       chip.className = 'chip' + (isOwned ? ' checked' : '');
       chip.dataset.variant = variant;
       chip.setAttribute('role','button'); chip.setAttribute('tabindex','0');
-      chip.innerHTML = `<span class="box">${isOwned ? '✓' : ''}</span>${VARIANT_LABELS[variant]}`;
-      chip.addEventListener('click', () => toggle(sprite.id, variant));
+      chip.innerHTML = `<span class="box">${isOwned ? '✓' : ''}</span>${VARIANT_LABELS[variant]}${isOwned ? `<span class="mst-star" title="Maîtrisé" style="margin-left:5px; cursor:pointer; opacity:${isMastered?1:0.35};">${isMastered?'⭐':'☆'}</span>` : ''}`;
+      chip.addEventListener('click', (e) => {
+        if(e.target.classList.contains('mst-star')){ e.stopPropagation(); toggleMastered(sprite.id, variant); return; }
+        toggle(sprite.id, variant);
+      });
       chip.addEventListener('keydown', (e) => { if(e.key==='Enter'||e.key===' '){ e.preventDefault(); toggle(sprite.id, variant);} });
       chips.appendChild(chip);
     });
@@ -1755,9 +1790,9 @@ document.getElementById('personalMsgSendBtn').addEventListener('click', async ()
   logAdminAction('message_perso', viewedPlayer.fortnite, val);
   document.getElementById('personalMsgComposeBlock').style.display = 'none';
 });
-['effectConfetti','effectFlash','effectShake'].forEach(id => {
-  document.getElementById(id).addEventListener('click', async () => {
-    const type = id === 'effectConfetti' ? 'confetti' : (id === 'effectFlash' ? 'flash' : 'shake');
+document.querySelectorAll('#effectChooseBlock [data-effect]').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const type = btn.dataset.effect;
     const ok = await sendScreenEvent(viewedPlayer.fortnite, type, null);
     if(!ok){ showToast('⚠ Échec de l\'envoi'); return; }
     showToast('✓ Effet envoyé à ' + viewedPlayer.fortnite);
@@ -1949,6 +1984,27 @@ async function openMyTrades(){
         actions.appendChild(acceptBtn); actions.appendChild(declineBtn);
         item.appendChild(actions);
       }
+      if(t.status === 'accepted'){
+        const other = incoming ? t.from_fortnite : t.to_fortnite;
+        const msgRow = document.createElement('div');
+        msgRow.style.cssText = 'display:flex; gap:6px; margin-top:8px;';
+        const input = document.createElement('input');
+        input.type = 'text'; input.placeholder = 'Message à ' + other + '...'; input.maxLength = 300;
+        input.style.cssText = 'flex:1; background:var(--panel); border:1px solid var(--line); color:var(--text); padding:8px 10px; border-radius:8px; font-size:12.5px;';
+        const sendBtn = document.createElement('button');
+        sendBtn.type = 'button'; sendBtn.textContent = '💬 Message';
+        sendBtn.style.cssText = 'border:none; cursor:pointer; background:var(--teal); color:#06131a; padding:8px 12px; border-radius:8px; font-weight:700; font-size:12px;';
+        sendBtn.addEventListener('click', async () => {
+          const val = input.value.trim();
+          if(!val) return;
+          sendBtn.disabled = true;
+          const ok = await sendMessage(other, val);
+          sendBtn.disabled = false;
+          if(ok){ input.value = ''; showToast('✓ Message envoyé à ' + other); } else { showToast('⚠ Échec de l\'envoi'); }
+        });
+        msgRow.appendChild(input); msgRow.appendChild(sendBtn);
+        item.appendChild(msgRow);
+      }
       list.appendChild(item);
     });
   }catch(e){ list.innerHTML = '<div style="color:var(--muted); font-size:12px;">Erreur réseau.</div>'; }
@@ -2049,6 +2105,7 @@ async function setMaintenance(value){
   return res.ok;
 }
 document.getElementById('maintenanceOn').addEventListener('click', async () => {
+  if(document.getElementById('maintenanceCodeInput').value.trim() !== MAINTENANCE_CODE){ showToast('⚠ Code incorrect'); return; }
   const msg = document.getElementById('maintenanceMsgInput').value.trim() || 'Le site revient bientôt, merci de ta patience !';
   const btn = document.getElementById('maintenanceOn');
   btn.disabled = true;
@@ -2057,10 +2114,12 @@ document.getElementById('maintenanceOn').addEventListener('click', async () => {
   if(!ok){ showToast('⚠ Échec de l\'activation'); return; }
   showToast('✓ Maintenance activée');
   logAdminAction('maintenance_on', null, msg);
+  document.getElementById('maintenanceCodeInput').value = '';
   document.getElementById('maintenanceModal').classList.add('hidden');
   document.getElementById('adminMenuModal').classList.remove('hidden');
 });
 document.getElementById('maintenanceOff').addEventListener('click', async () => {
+  if(document.getElementById('maintenanceCodeInput').value.trim() !== MAINTENANCE_CODE){ showToast('⚠ Code incorrect'); return; }
   const btn = document.getElementById('maintenanceOff');
   btn.disabled = true;
   const ok = await setMaintenance('off');
@@ -2068,6 +2127,7 @@ document.getElementById('maintenanceOff').addEventListener('click', async () => 
   if(!ok){ showToast('⚠ Échec de la désactivation'); return; }
   showToast('✓ Maintenance désactivée');
   logAdminAction('maintenance_off', null, null);
+  document.getElementById('maintenanceCodeInput').value = '';
   document.getElementById('maintenanceModal').classList.add('hidden');
   document.getElementById('adminMenuModal').classList.remove('hidden');
 });
@@ -2288,9 +2348,10 @@ document.getElementById('suggestSubmit').addEventListener('click', async () => {
 });
 
 // ---------- Réception des effets écran / message perso (côté joueur) ----------
-function launchConfetti(){
-  const emojis = ['🎉','✨','🎊','⭐','💫'];
-  for(let i=0;i<40;i++){
+function launchConfetti(emojis, count){
+  emojis = emojis || ['🎉','✨','🎊','⭐','💫'];
+  count = count || 40;
+  for(let i=0;i<count;i++){
     const piece = document.createElement('div');
     piece.className = 'confetti-piece';
     piece.textContent = emojis[Math.floor(Math.random()*emojis.length)];
@@ -2301,19 +2362,58 @@ function launchConfetti(){
     setTimeout(() => piece.remove(), 4200);
   }
 }
-function launchFlash(){
+function launchFlash(color, duration){
   const el = document.getElementById('screenFlash');
-  el.style.background = '#ffffff';
+  el.style.background = color || '#ffffff';
   el.classList.remove('flash-active'); void el.offsetWidth; el.classList.add('flash-active');
-  setTimeout(() => el.classList.remove('flash-active'), 900);
+  setTimeout(() => el.classList.remove('flash-active'), duration || 900);
 }
 function launchShake(){
   document.body.classList.remove('shake-active'); void document.body.offsetWidth; document.body.classList.add('shake-active');
   setTimeout(() => document.body.classList.remove('shake-active'), 500);
 }
+function launchBlackout(){
+  const el = document.getElementById('screenFlash');
+  el.style.background = '#000';
+  el.style.display = 'block';
+  el.style.opacity = '1';
+  el.classList.remove('flash-active');
+  setTimeout(() => { el.style.transition = 'opacity 1s ease'; el.style.opacity = '0'; }, 1200);
+  setTimeout(() => { el.style.display = 'none'; el.style.transition = ''; el.style.opacity = ''; }, 2300);
+}
+function launchDisco(){
+  const colors = ['#ff5a78','#8b5cf6','#2de2c0','#f5c64b','#2f6bff'];
+  let i = 0;
+  const iv = setInterval(() => { launchFlash(colors[i % colors.length], 350); i++; if(i>=10) clearInterval(iv); }, 220);
+}
+function launchUpsideDown(){
+  document.body.style.transition = 'transform 0.6s ease';
+  document.body.style.transform = 'rotate(180deg)';
+  setTimeout(() => { document.body.style.transform = 'rotate(0deg)'; }, 4000);
+  setTimeout(() => { document.body.style.transition = ''; }, 4700);
+}
+function launchGlitch(){
+  let n = 0;
+  const iv = setInterval(() => {
+    document.body.style.transform = `translate(${(Math.random()-0.5)*14}px,${(Math.random()-0.5)*10}px) skew(${(Math.random()-0.5)*4}deg)`;
+    n++;
+    if(n>16){ clearInterval(iv); document.body.style.transform = ''; }
+  }, 60);
+}
 document.getElementById('personalMsgClose').addEventListener('click', () => {
   document.getElementById('personalMsgOverlay').style.display = 'none';
 });
+const SCREEN_EFFECTS = {
+  confetti: () => launchConfetti(),
+  flash: () => launchFlash(),
+  shake: () => launchShake(),
+  blackout: () => launchBlackout(),
+  disco: () => launchDisco(),
+  upsidedown: () => launchUpsideDown(),
+  snow: () => launchConfetti(['❄️','🌨️','⛄'], 35),
+  hearts: () => launchConfetti(['💖','💕','❤️','💗'], 35),
+  glitch: () => launchGlitch()
+};
 async function checkScreenEvents(){
   if(!profile || !profile.fortnite) return;
   try{
@@ -2325,9 +2425,7 @@ async function checkScreenEvents(){
       if(ev.type === 'message'){
         document.getElementById('personalMsgText').textContent = ev.content || '';
         document.getElementById('personalMsgOverlay').style.display = 'flex';
-      } else if(ev.type === 'confetti'){ launchConfetti(); }
-      else if(ev.type === 'flash'){ launchFlash(); }
-      else if(ev.type === 'shake'){ launchShake(); }
+      } else if(SCREEN_EFFECTS[ev.type]){ SCREEN_EFFECTS[ev.type](); }
       await sb('screen_events?id=eq.' + encodeURIComponent(ev.id), { method:'PATCH', headers:{'Prefer':'return=minimal'}, body: JSON.stringify({delivered:true}) });
     }
   }catch(e){ /* pas bloquant */ }
@@ -2616,11 +2714,12 @@ setInterval(async () => {
     }
   }
 
-  // Bannissement : si le joueur connecté vient d'être banni, on le déconnecte et on affiche l'écran
+  // Bannissement : si le joueur connecté vient d'être banni, on le bloque (sans perdre sa session)
   if(profile && profile.fortnite){
     const ban = await checkBan(profile.fortnite);
     if(ban){
-      try{ localStorage.removeItem('grimoire_token'); }catch(e){}
+      bannedFortnite = profile.fortnite;
+      bannedToken = accessToken;
       accessToken = null;
       profile = null;
       owned = {};
@@ -2633,6 +2732,23 @@ setInterval(async () => {
     upsertProfile(profile.fortnite, profile.discord);
     // Messages perso / effets envoyés par l'admin
     checkScreenEvents();
+  } else if(bannedFortnite){
+    // On est actuellement bloqué par un ban : on vérifie s'il vient d'être levé
+    const stillBanned = await checkBan(bannedFortnite);
+    if(!stillBanned){
+      try{
+        const res = await fetch(SUPABASE_URL + '/auth/v1/user', { headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + bannedToken } });
+        if(res.ok){
+          const user = await res.json();
+          applySession(bannedToken, user);
+          owned = await loadProgressFor(profile.fortnite);
+          render();
+          showToast('✓ Tu n\'es plus banni, te revoilà !');
+        }
+      }catch(e){ /* réessaiera au prochain cycle */ }
+      bannedFortnite = null;
+      bannedToken = null;
+    }
   }
 }, 4000);
 </script>
