@@ -360,6 +360,9 @@
     <button class="admin-btn" id="playerSearchBtn" type="button">🔍 Chercher un joueur</button>
     <button class="admin-btn" id="myTradesBtn" type="button">🔄 Mes échanges</button>
     <button class="admin-btn" id="suggestBtn" type="button">💡 Suggestion</button>
+    <button class="admin-btn" id="findTradeBtn" type="button">🔎 Trouver un échange</button>
+    <button class="admin-btn" id="pollBtn" type="button">🗳️ Sondage</button>
+    <a class="admin-btn" href="https://discord.gg/2N9ynChee" target="_blank" rel="noopener" style="text-decoration:none; display:inline-flex; align-items:center;">💬 Rejoindre le Discord</a>
   </div>
 </div>
 
@@ -483,8 +486,8 @@
 <!-- Écran de bannissement (bloquant, aucune fermeture) -->
 <div class="modal-backdrop hidden" id="banGate">
   <div class="modal" style="max-width:380px; text-align:center;">
-    <div style="font-size:40px; margin-bottom:8px;">⛔</div>
-    <h2>Compte banni</h2>
+    <div id="banGateIcon" style="font-size:40px; margin-bottom:8px;">⛔</div>
+    <h2 id="banGateTitle">Compte banni</h2>
     <p class="hint" id="banGateText" style="font-size:14px;"></p>
   </div>
 </div>
@@ -516,6 +519,9 @@
       <button class="admin-btn" id="adminGoBroadcast" type="button" style="width:100%; justify-content:flex-start;">📣 Message groupé</button>
       <button class="admin-btn" id="adminGoSuggestions" type="button" style="width:100%; justify-content:flex-start;">💡 Suggestions</button>
       <button class="admin-btn" id="adminGoLog" type="button" style="width:100%; justify-content:flex-start;">📜 Journal admin</button>
+      <button class="admin-btn" id="adminGoTradesHistory" type="button" style="width:100%; justify-content:flex-start;">🔄 Historique des échanges</button>
+      <button class="admin-btn" id="adminGoPoll" type="button" style="width:100%; justify-content:flex-start;">🗳️ Sondage flash</button>
+      <button class="admin-btn" id="adminGoTheme" type="button" style="width:100%; justify-content:flex-start;">🎨 Thème du site</button>
     </div>
     <div class="modal-actions">
       <button class="btn-ghost" id="adminMenuClose" type="button">Fermer</button>
@@ -542,10 +548,17 @@
 <!-- Bannissements (admin) -->
 <div class="modal-backdrop hidden" id="banModal">
   <div class="modal" style="max-width:460px;">
-    <h2>⛔ Bannissements</h2>
+    <h2>⛔ Bannissements & gels</h2>
     <div class="field">
       <label for="banFortnite">Pseudo Fortnite exact</label>
       <input type="text" id="banFortnite" maxlength="24" placeholder="Ex: Ninja">
+    </div>
+    <div class="field">
+      <label for="banType">Type de sanction</label>
+      <select id="banType" style="width:100%; background:var(--panel-2); border:1px solid var(--line); color:var(--text); padding:10px 12px; border-radius:9px; font-size:14px;">
+        <option value="ban">⛔ Bannissement</option>
+        <option value="freeze">❄️ Gel du compte (plus doux)</option>
+      </select>
     </div>
     <div class="field">
       <label for="banDuration">Durée</label>
@@ -563,14 +576,28 @@
     </div>
     <div class="modal-actions">
       <button class="btn-ghost" id="banBack" type="button">Retour</button>
-      <button class="btn-primary" id="banSubmit" type="button">Bannir</button>
+      <button class="btn-primary" id="banSubmit" type="button">Appliquer</button>
     </div>
-    <h2 style="margin-top:20px; font-size:16px;">Bannis actuels</h2>
+    <h2 style="margin-top:20px; font-size:16px;">Sanctions actuelles</h2>
     <div id="banList" style="margin-top:8px;"></div>
   </div>
 </div>
 
 <!-- Recherche joueur (tout le monde) + modification (admin) -->
+<!-- Trouver un échange (par esprit manquant) -->
+<div class="modal-backdrop hidden" id="findTradeModal">
+  <div class="modal" style="max-width:520px;">
+    <h2>🔎 Trouver un échange</h2>
+    <p class="hint">Coche l'esprit + la mutation qui te manque, on te montre qui l'a.</p>
+    <div id="findTradeGrid" style="max-height:280px; overflow-y:auto;"></div>
+    <div class="modal-actions" style="margin-top:10px;">
+      <button class="btn-ghost" id="findTradeBack" type="button">Retour</button>
+      <button class="btn-primary" id="findTradeSearch" type="button">Rechercher</button>
+    </div>
+    <div id="findTradeResults" style="margin-top:14px;"></div>
+  </div>
+</div>
+
 <div class="modal-backdrop hidden" id="searchModal">
   <div class="modal" style="max-width:520px;">
     <h2>🔍 Rechercher un joueur</h2>
@@ -602,6 +629,7 @@
       <button class="admin-btn" id="playerEffectBtn" type="button" style="flex:1; justify-content:center; border-color:var(--gold) !important; color:var(--gold);">✨ Effet écran</button>
     </div>
     <div id="personalMsgComposeBlock" style="display:none; margin-top:10px;">
+      <div id="warningPresets" style="display:flex; flex-direction:column; gap:6px; margin-bottom:8px;"></div>
       <input type="text" id="personalMsgInput" maxlength="200" placeholder="Message qui s'affichera en grand chez lui...">
       <button class="btn-primary" id="personalMsgSendBtn" type="button" style="width:100%; margin-top:8px;">Envoyer</button>
     </div>
@@ -758,6 +786,66 @@
   </div>
 </div>
 
+<!-- Historique des échanges (admin) -->
+<div class="modal-backdrop hidden" id="tradesHistoryModal">
+  <div class="modal" style="max-width:520px;">
+    <h2>🔄 Historique des échanges</h2>
+    <div id="tradesHistoryList" style="max-height:60vh; overflow-y:auto;"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="tradesHistoryBack" type="button">Retour</button>
+    </div>
+  </div>
+</div>
+
+<!-- Sondage flash (admin : création) -->
+<div class="modal-backdrop hidden" id="pollAdminModal">
+  <div class="modal">
+    <h2>🗳️ Sondage flash</h2>
+    <p class="hint">Remplace le sondage en cours et remet les votes à zéro.</p>
+    <div class="field">
+      <label for="pollQuestion">Question</label>
+      <input type="text" id="pollQuestion" maxlength="140" placeholder="Quel esprit voulez-vous voir arriver ?">
+    </div>
+    <div class="field"><label>Option 1</label><input type="text" id="pollOpt0" maxlength="60"></div>
+    <div class="field"><label>Option 2</label><input type="text" id="pollOpt1" maxlength="60"></div>
+    <div class="field"><label>Option 3 (optionnel)</label><input type="text" id="pollOpt2" maxlength="60"></div>
+    <div class="field"><label>Option 4 (optionnel)</label><input type="text" id="pollOpt3" maxlength="60"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="pollAdminBack" type="button">Retour</button>
+      <button class="btn-primary" id="pollLaunch" type="button">Lancer</button>
+    </div>
+    <button id="pollClear" type="button" style="width:100%; margin-top:10px; border:1px solid var(--line); background:var(--panel-2); color:var(--muted); padding:10px; border-radius:9px; font-weight:700; cursor:pointer;">Arrêter le sondage en cours</button>
+  </div>
+</div>
+
+<!-- Sondage flash (joueur : vote) -->
+<div class="modal-backdrop hidden" id="pollVoteModal">
+  <div class="modal">
+    <h2>🗳️ Sondage flash</h2>
+    <div id="pollVoteContent"><div style="color:var(--muted); font-size:12px;">Chargement...</div></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="pollVoteClose" type="button">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- Thème du site (admin) -->
+<div class="modal-backdrop hidden" id="themeModal">
+  <div class="modal">
+    <h2>🎨 Thème du site</h2>
+    <p class="hint">Change la couleur de fond pour tout le monde.</p>
+    <div class="field">
+      <label for="themeColorInput">Couleur d'arrière-plan</label>
+      <input type="color" id="themeColorInput" value="#0a0d16" style="width:100%; height:44px; border:1px solid var(--line); border-radius:9px; background:var(--panel-2); padding:4px;">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="themeBack" type="button">Retour</button>
+      <button class="btn-primary" id="themeApply" type="button">Appliquer à tout le monde</button>
+    </div>
+    <button id="themeReset" type="button" style="width:100%; margin-top:10px; border:1px solid var(--line); background:var(--panel-2); color:var(--teal); padding:10px; border-radius:9px; font-weight:700; cursor:pointer;">Réinitialiser le thème par défaut</button>
+  </div>
+</div>
+
 <!-- Overlays d'effets écran (côté joueur) -->
 <div id="personalMsgOverlay">
   <div class="box">
@@ -882,23 +970,27 @@ async function signIn(fortnite, password){
 
 async function checkBan(fortnite){
   try{
-    const res = await sb('bans?fortnite=eq.' + encodeURIComponent(fortnite) + '&select=until,reason');
+    const res = await sb('bans?fortnite=eq.' + encodeURIComponent(fortnite) + '&select=until,reason,type');
     if(!res.ok) return null;
     const rows = await res.json();
     if(rows.length === 0) return null;
     const ban = rows[0];
-    if(ban.until && new Date(ban.until) <= new Date()) return null; // ban expiré
+    if(ban.until && new Date(ban.until) <= new Date()) return null; // sanction expirée
     return ban;
   }catch(e){ return null; }
 }
 
 function showBanScreen(ban){
+  const isFreeze = ban.type === 'freeze';
+  document.getElementById('banGateTitle').textContent = isFreeze ? 'Compte gelé' : 'Compte banni';
+  document.getElementById('banGateIcon').textContent = isFreeze ? '❄️' : '⛔';
+  const verb = isFreeze ? 'Ton compte est gelé' : 'Tu es banni';
   const txt = document.getElementById('banGateText');
   if(ban.until){
     const d = new Date(ban.until);
-    txt.textContent = 'Tu es banni jusqu\'au ' + d.toLocaleDateString('fr-FR') + ' à ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}) + (ban.reason ? ' — Raison : ' + ban.reason : '');
+    txt.textContent = verb + ' jusqu\'au ' + d.toLocaleDateString('fr-FR') + ' à ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}) + (ban.reason ? ' — Raison : ' + ban.reason : '');
   } else {
-    txt.textContent = 'Tu es banni indéfiniment.' + (ban.reason ? ' — Raison : ' + ban.reason : '');
+    txt.textContent = verb + ' indéfiniment.' + (ban.reason ? ' — Raison : ' + ban.reason : '');
   }
   document.getElementById('authGate').classList.add('hidden');
   document.getElementById('banGate').classList.remove('hidden');
@@ -1643,20 +1735,21 @@ async function refreshBanList(){
       const row = document.createElement('div');
       row.className = 'ticket-item';
       const untilTxt = b.until ? ('jusqu\'au ' + new Date(b.until).toLocaleDateString('fr-FR')) : 'indéfiniment';
+      const label = b.type === 'freeze' ? '❄️ Gelé' : '⛔ Banni';
       row.innerHTML = `
         <div class="th"><div class="who">${b.fortnite}</div></div>
-        <div style="font-size:12px; color:var(--muted);">Banni ${untilTxt}${b.reason ? ' — ' + b.reason.replace(/</g,'&lt;') : ''}</div>
+        <div style="font-size:12px; color:var(--muted);">${label} ${untilTxt}${b.reason ? ' — ' + b.reason.replace(/</g,'&lt;') : ''}</div>
       `;
       const unbanBtn = document.createElement('button');
       unbanBtn.type = 'button';
-      unbanBtn.textContent = 'Débannir';
+      unbanBtn.textContent = b.type === 'freeze' ? 'Dégeler' : 'Débannir';
       unbanBtn.style.cssText = 'margin-top:8px; border:none; cursor:pointer; background:var(--teal); color:#06131a; padding:6px 12px; border-radius:8px; font-weight:700; font-size:12px;';
       unbanBtn.addEventListener('click', async () => {
         unbanBtn.disabled = true;
         try{
           const r = await sb('bans?fortnite=eq.' + encodeURIComponent(b.fortnite), { method:'DELETE' });
-          if(!r.ok){ showToast('⚠ Échec du débannissement'); unbanBtn.disabled = false; return; }
-          showToast('✓ ' + b.fortnite + ' débanni');
+          if(!r.ok){ showToast('⚠ Échec'); unbanBtn.disabled = false; return; }
+          showToast('✓ ' + b.fortnite + (b.type==='freeze' ? ' dégelé' : ' débanni'));
           logAdminAction('unban', b.fortnite, null);
           refreshBanList();
         }catch(e){ showToast('⚠ Erreur réseau'); unbanBtn.disabled = false; }
@@ -1673,12 +1766,13 @@ document.getElementById('banBack').addEventListener('click', () => {
 document.getElementById('banSubmit').addEventListener('click', async () => {
   const fn = document.getElementById('banFortnite').value.trim();
   if(!fn){ showToast('⚠ Entre un pseudo Fortnite'); return; }
+  const type = document.getElementById('banType').value;
   const days = parseInt(document.getElementById('banDuration').value, 10);
   const reason = document.getElementById('banReason').value.trim();
   const btn = document.getElementById('banSubmit');
   btn.disabled = true;
   try{
-    // Vérifie que ce pseudo existe bien (évite de bannir un pseudo inexistant par erreur)
+    // Vérifie que ce pseudo existe bien (évite de sanctionner un pseudo inexistant par erreur)
     const checkRes = await sb('profiles?fortnite=eq.' + encodeURIComponent(fn) + '&select=fortnite');
     const exists = checkRes.ok ? (await checkRes.json()).length > 0 : false;
     if(!exists){ showToast('⚠ Aucun compte avec ce pseudo exact'); btn.disabled = false; return; }
@@ -1686,11 +1780,11 @@ document.getElementById('banSubmit').addEventListener('click', async () => {
     const res = await sb('bans?on_conflict=fortnite', {
       method:'POST',
       headers:{ 'Prefer':'resolution=merge-duplicates,return=minimal' },
-      body: JSON.stringify({ fortnite: fn, until: computeUntil(days), reason: reason || null })
+      body: JSON.stringify({ fortnite: fn, until: computeUntil(days), reason: reason || null, type })
     });
     if(!res.ok){ const t = await res.text().catch(()=>''); showToast('⚠ Erreur (' + res.status + '): ' + t.slice(0,100)); btn.disabled=false; return; }
-    showToast('✓ ' + fn + ' banni');
-    logAdminAction('ban', fn, (days===0?'indéfini':days+'j') + (reason ? ' — ' + reason : ''));
+    showToast('✓ ' + fn + (type==='freeze' ? ' gelé' : ' banni'));
+    logAdminAction(type === 'freeze' ? 'freeze' : 'ban', fn, (days===0?'indéfini':days+'j') + (reason ? ' — ' + reason : ''));
     document.getElementById('banFortnite').value = '';
     document.getElementById('banReason').value = '';
     refreshBanList();
@@ -1701,6 +1795,68 @@ document.getElementById('banSubmit').addEventListener('click', async () => {
 // ---------- Recherche de joueur + fiche + échanges/attribution ----------
 let searchFromAdmin = false;
 let viewedPlayer = null; // { fortnite, discord, owned }
+
+// ---------- Trouver un échange (par esprit manquant) ----------
+let findTradeSelectedKey = null;
+document.getElementById('findTradeBtn').addEventListener('click', () => {
+  if(!profile){ showToast('⚠ Connecte-toi d\'abord'); return; }
+  findTradeSelectedKey = null;
+  document.getElementById('findTradeResults').innerHTML = '';
+  const grid = document.getElementById('findTradeGrid');
+  grid.innerHTML = '';
+  SPRITES.forEach(s => {
+    const block = document.createElement('div');
+    block.className = 'pick-block';
+    block.innerHTML = `<div class="pick-title"><span>${s.emoji}</span> ${s.name}</div>`;
+    const row = document.createElement('div');
+    row.className = 'pick-variants';
+    s.variants.forEach(variant => {
+      const k = keyFor(s.id, variant);
+      const chip = document.createElement('div');
+      chip.className = 'pick-vchip';
+      chip.textContent = VARIANT_LABELS[variant];
+      chip.addEventListener('click', () => {
+        grid.querySelectorAll('.pick-vchip.selected').forEach(c => c.classList.remove('selected'));
+        chip.classList.add('selected');
+        findTradeSelectedKey = k;
+      });
+      row.appendChild(chip);
+    });
+    block.appendChild(row);
+    grid.appendChild(block);
+  });
+  document.getElementById('findTradeModal').classList.remove('hidden');
+});
+document.getElementById('findTradeBack').addEventListener('click', () => {
+  document.getElementById('findTradeModal').classList.add('hidden');
+});
+document.getElementById('findTradeSearch').addEventListener('click', async () => {
+  if(!findTradeSelectedKey){ showToast('⚠ Choisis un esprit et sa mutation'); return; }
+  const results = document.getElementById('findTradeResults');
+  results.innerHTML = '<div style="color:var(--muted); font-size:12px;">Recherche...</div>';
+  try{
+    const res = await sb('profiles?select=fortnite,discord');
+    if(!res.ok){ results.innerHTML = '<div style="color:var(--muted); font-size:12px;">Erreur.</div>'; return; }
+    const players = await res.json();
+    const progRes = await sb('progress?select=fortnite,owned');
+    const progList = progRes.ok ? await progRes.json() : [];
+    const owners = progList.filter(p => p.owned && p.owned[findTradeSelectedKey] && p.fortnite.toLowerCase() !== (profile ? profile.fortnite.toLowerCase() : ''));
+    if(owners.length === 0){ results.innerHTML = '<div style="color:var(--muted); font-size:12px; text-align:center; padding:14px 0;">Personne ne l\'a pour l\'instant.</div>'; return; }
+    results.innerHTML = `<p class="hint" style="margin-bottom:8px;">${owners.length} joueur${owners.length>1?'s':''} possède${owners.length>1?'nt':''} ${describeEspritKey(findTradeSelectedKey)} :</p>`;
+    owners.forEach(o => {
+      const p = players.find(pp => pp.fortnite === o.fortnite);
+      const el = document.createElement('div');
+      el.className = 'pick-chip';
+      el.style.marginBottom = '8px';
+      el.innerHTML = `<span class="n"><strong>${o.fortnite}</strong>${p && p.discord ? ' · Discord: ' + p.discord : ''}</span>`;
+      el.addEventListener('click', () => {
+        document.getElementById('findTradeModal').classList.add('hidden');
+        openPlayerProfile(o.fortnite, p ? p.discord : '');
+      });
+      results.appendChild(el);
+    });
+  }catch(e){ results.innerHTML = '<div style="color:var(--muted); font-size:12px;">Erreur réseau.</div>'; }
+});
 
 document.getElementById('playerSearchBtn').addEventListener('click', () => {
   if(!profile){ showToast('⚠ Connecte-toi d\'abord'); return; }
@@ -1781,11 +1937,28 @@ document.getElementById('playerMsgBtn').addEventListener('click', () => {
   block.style.display = isHidden ? 'block' : 'none';
   document.getElementById('tradeProposeBlock').style.display = 'none';
 });
+const WARNING_PRESETS = [
+  '⚠️ Merci de respecter les règles du serveur.',
+  '⚠️ Ton comportement a été signalé, fais attention.',
+  '⚠️ Dernier avertissement avant sanction.',
+  '⚠️ Reste correct envers les autres joueurs, merci.'
+];
 document.getElementById('playerPersonalMsgBtn').addEventListener('click', () => {
   const block = document.getElementById('personalMsgComposeBlock');
   const isHidden = block.style.display === 'none';
   block.style.display = isHidden ? 'block' : 'none';
   document.getElementById('effectChooseBlock').style.display = 'none';
+  if(isHidden){
+    const presets = document.getElementById('warningPresets');
+    presets.innerHTML = '';
+    WARNING_PRESETS.forEach(msg => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.textContent = msg;
+      b.style.cssText = 'text-align:left; border:1px solid var(--line); background:var(--panel-2); color:var(--text); padding:8px 10px; border-radius:8px; font-size:12px; cursor:pointer;';
+      b.addEventListener('click', () => { document.getElementById('personalMsgInput').value = msg; });
+      presets.appendChild(b);
+    });
+  }
 });
 document.getElementById('playerEffectBtn').addEventListener('click', () => {
   const block = document.getElementById('effectChooseBlock');
@@ -2167,6 +2340,176 @@ document.getElementById('adminGoLog').addEventListener('click', () => {
   document.getElementById('adminMenuModal').classList.add('hidden');
   openAdminLog();
 });
+document.getElementById('adminGoTradesHistory').addEventListener('click', () => {
+  document.getElementById('adminMenuModal').classList.add('hidden');
+  openTradesHistory();
+});
+document.getElementById('tradesHistoryBack').addEventListener('click', () => {
+  document.getElementById('tradesHistoryModal').classList.add('hidden');
+  document.getElementById('adminMenuModal').classList.remove('hidden');
+});
+async function openTradesHistory(){
+  const list = document.getElementById('tradesHistoryList');
+  list.innerHTML = '<div style="color:var(--muted); font-size:12px;">Chargement...</div>';
+  document.getElementById('tradesHistoryModal').classList.remove('hidden');
+  try{
+    const res = await sb('trades?select=*&order=created_at.desc&limit=100');
+    if(!res.ok){ list.innerHTML = '<div style="color:var(--muted); font-size:12px;">Erreur.</div>'; return; }
+    const rows = await res.json();
+    if(rows.length === 0){ list.innerHTML = '<div style="color:var(--muted); font-size:12px;">Aucun échange pour l\'instant.</div>'; return; }
+    const STATUS_LABEL = { pending:'En attente', accepted:'Acceptée', declined:'Refusée' };
+    list.innerHTML = '';
+    rows.forEach(t => {
+      const item = document.createElement('div');
+      item.className = 'ticket-item';
+      item.innerHTML = `
+        <div class="th"><div class="who">${t.from_fortnite} → ${t.to_fortnite}</div><span class="status-badge ${t.status==='accepted'?'answered':'open'}">${STATUS_LABEL[t.status]||t.status}</span></div>
+        <div class="ticket-date">${new Date(t.created_at).toLocaleString('fr-FR', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div>
+        <div style="font-size:12.5px; margin-top:4px;">Offre : <strong>${describeEspritKey(t.offer_key)}</strong></div>
+        <div style="font-size:12.5px;">Contre : <strong>${describeEspritKey(t.want_key)}</strong></div>
+      `;
+      list.appendChild(item);
+    });
+  }catch(e){ list.innerHTML = '<div style="color:var(--muted); font-size:12px;">Erreur réseau.</div>'; }
+}
+
+// ---------- Sondage flash ----------
+document.getElementById('adminGoPoll').addEventListener('click', () => {
+  document.getElementById('adminMenuModal').classList.add('hidden');
+  ['pollQuestion','pollOpt0','pollOpt1','pollOpt2','pollOpt3'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('pollAdminModal').classList.remove('hidden');
+});
+document.getElementById('pollAdminBack').addEventListener('click', () => {
+  document.getElementById('pollAdminModal').classList.add('hidden');
+  document.getElementById('adminMenuModal').classList.remove('hidden');
+});
+document.getElementById('pollLaunch').addEventListener('click', async () => {
+  const question = document.getElementById('pollQuestion').value.trim();
+  const options = ['pollOpt0','pollOpt1','pollOpt2','pollOpt3'].map(id => document.getElementById(id).value.trim()).filter(Boolean);
+  if(!question || options.length < 2){ showToast('⚠ Question + au moins 2 options requis'); return; }
+  const btn = document.getElementById('pollLaunch');
+  btn.disabled = true;
+  try{
+    await sb('poll_votes?created_at=lt.' + encodeURIComponent(new Date(Date.now()+86400000).toISOString()), { method:'DELETE' });
+    const res = await sb('polls?on_conflict=id', {
+      method:'POST', headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},
+      body: JSON.stringify({ id:'current', question, options, created_at: new Date().toISOString() })
+    });
+    if(!res.ok){ showToast('⚠ Échec du lancement'); btn.disabled=false; return; }
+    showToast('✓ Sondage lancé');
+    logAdminAction('poll', null, question);
+    document.getElementById('pollAdminModal').classList.add('hidden');
+    document.getElementById('adminMenuModal').classList.remove('hidden');
+  }catch(e){ showToast('⚠ Erreur réseau'); }
+  btn.disabled = false;
+});
+document.getElementById('pollClear').addEventListener('click', async () => {
+  const btn = document.getElementById('pollClear');
+  btn.disabled = true;
+  await sb('poll_votes?created_at=lt.' + encodeURIComponent(new Date(Date.now()+86400000).toISOString()), { method:'DELETE' }).catch(()=>{});
+  const res = await sb('polls?on_conflict=id', { method:'POST', headers:{'Prefer':'resolution=merge-duplicates,return=minimal'}, body: JSON.stringify({ id:'current', question:'', options:[] }) });
+  btn.disabled = false;
+  if(!res.ok){ showToast('⚠ Échec'); return; }
+  showToast('✓ Sondage arrêté');
+  document.getElementById('pollAdminModal').classList.add('hidden');
+  document.getElementById('adminMenuModal').classList.remove('hidden');
+});
+
+document.getElementById('pollBtn').addEventListener('click', openPollVote);
+document.getElementById('pollVoteClose').addEventListener('click', () => {
+  document.getElementById('pollVoteModal').classList.add('hidden');
+});
+async function openPollVote(){
+  if(!profile){ showToast('⚠ Connecte-toi d\'abord'); return; }
+  const content = document.getElementById('pollVoteContent');
+  content.innerHTML = '<div style="color:var(--muted); font-size:12px;">Chargement...</div>';
+  document.getElementById('pollVoteModal').classList.remove('hidden');
+  try{
+    const pollRes = await sb('polls?id=eq.current&select=question,options');
+    const pollRows = pollRes.ok ? await pollRes.json() : [];
+    if(pollRows.length === 0 || !pollRows[0].question){
+      content.innerHTML = '<div style="color:var(--muted); font-size:12px; text-align:center; padding:16px 0;">Aucun sondage en cours.</div>';
+      return;
+    }
+    const poll = pollRows[0];
+    const myVoteRes = await sb('poll_votes?id=eq.' + encodeURIComponent(profile.fortnite) + '&select=option_index');
+    const myVoteRows = myVoteRes.ok ? await myVoteRes.json() : [];
+    const myVote = myVoteRows.length ? myVoteRows[0].option_index : null;
+
+    const allVotesRes = await sb('poll_votes?select=option_index');
+    const allVotes = allVotesRes.ok ? await allVotesRes.json() : [];
+    const counts = poll.options.map((_,i) => allVotes.filter(v => v.option_index === i).length);
+    const total = counts.reduce((a,b)=>a+b,0);
+
+    content.innerHTML = `<h2 style="font-size:16px; margin-bottom:12px;">${poll.question.replace(/</g,'&lt;')}</h2>`;
+    poll.options.forEach((opt,i) => {
+      const pct = total ? Math.round((counts[i]/total)*100) : 0;
+      const row = document.createElement('div');
+      row.style.cssText = 'margin-bottom:10px; cursor:pointer;';
+      row.innerHTML = `
+        <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;">
+          <span>${myVote === i ? '✓ ' : ''}${opt.replace(/</g,'&lt;')}</span><span style="color:var(--muted);">${pct}% (${counts[i]})</span>
+        </div>
+        <div style="height:8px; background:var(--panel-2); border-radius:5px; overflow:hidden;"><div style="height:100%; width:${pct}%; background:${myVote===i?'var(--teal)':'var(--purple)'};"></div></div>
+      `;
+      row.addEventListener('click', async () => {
+        const r = await sb('poll_votes?on_conflict=id', {
+          method:'POST', headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},
+          body: JSON.stringify({ id: profile.fortnite, option_index: i })
+        });
+        if(!r.ok){ showToast('⚠ Échec du vote'); return; }
+        openPollVote();
+      });
+      content.appendChild(row);
+    });
+  }catch(e){ content.innerHTML = '<div style="color:var(--muted); font-size:12px;">Erreur réseau.</div>'; }
+}
+
+// ---------- Thème du site ----------
+document.getElementById('adminGoTheme').addEventListener('click', () => {
+  document.getElementById('adminMenuModal').classList.add('hidden');
+  document.getElementById('themeModal').classList.remove('hidden');
+});
+document.getElementById('themeBack').addEventListener('click', () => {
+  document.getElementById('themeModal').classList.add('hidden');
+  document.getElementById('adminMenuModal').classList.remove('hidden');
+});
+document.getElementById('themeApply').addEventListener('click', async () => {
+  const color = document.getElementById('themeColorInput').value;
+  const btn = document.getElementById('themeApply');
+  btn.disabled = true;
+  const res = await sb('settings?on_conflict=key', { method:'POST', headers:{'Prefer':'resolution=merge-duplicates,return=minimal'}, body: JSON.stringify({ key:'theme_bg', value: color }) });
+  btn.disabled = false;
+  if(!res.ok){ showToast('⚠ Échec'); return; }
+  showToast('✓ Thème appliqué à tout le monde');
+  logAdminAction('theme', null, color);
+  applyTheme(color);
+  document.getElementById('themeModal').classList.add('hidden');
+  document.getElementById('adminMenuModal').classList.remove('hidden');
+});
+document.getElementById('themeReset').addEventListener('click', async () => {
+  const btn = document.getElementById('themeReset');
+  btn.disabled = true;
+  const res = await sb('settings?on_conflict=key', { method:'POST', headers:{'Prefer':'resolution=merge-duplicates,return=minimal'}, body: JSON.stringify({ key:'theme_bg', value:'' }) });
+  btn.disabled = false;
+  if(!res.ok){ showToast('⚠ Échec'); return; }
+  showToast('✓ Thème réinitialisé');
+  applyTheme('');
+  document.getElementById('themeModal').classList.add('hidden');
+  document.getElementById('adminMenuModal').classList.remove('hidden');
+});
+function applyTheme(color){
+  document.body.style.background = color ? color : '';
+}
+async function loadTheme(){
+  try{
+    const res = await sb('settings?key=eq.theme_bg&select=value');
+    if(!res.ok) return;
+    const rows = await res.json();
+    applyTheme(rows.length ? rows[0].value : '');
+  }catch(e){}
+}
+
 document.getElementById('adminLogBack').addEventListener('click', () => {
   document.getElementById('adminLogModal').classList.add('hidden');
   document.getElementById('adminMenuModal').classList.remove('hidden');
@@ -2181,7 +2524,7 @@ async function openAdminLog(){
     const rows = await res.json();
     if(rows.length === 0){ list.innerHTML = '<div style="color:var(--muted); font-size:12px; text-align:center; padding:20px 0;">Aucune action enregistrée.</div>'; return; }
     list.innerHTML = '';
-    const ACTION_LABELS = { ban:'⛔ Bannissement', unban:'✓ Débannissement', attribution:'✏️ Attribution manuelle', announcement:'📢 Annonce modifiée', maintenance_on:'🛠️ Maintenance activée', maintenance_off:'🛠️ Maintenance désactivée', broadcast:'📣 Message groupé', message_perso:'📩 Message perso envoyé', effet_ecran:'✨ Effet écran envoyé', suggestion_status:'💡 Suggestion mise à jour' };
+    const ACTION_LABELS = { ban:'⛔ Bannissement', freeze:'❄️ Gel de compte', unban:'✓ Débannissement/Dégel', attribution:'✏️ Attribution manuelle', announcement:'📢 Annonce modifiée', maintenance_on:'🛠️ Maintenance activée', maintenance_off:'🛠️ Maintenance désactivée', broadcast:'📣 Message groupé', message_perso:'📩 Message perso envoyé', effet_ecran:'✨ Effet écran envoyé', suggestion_status:'💡 Suggestion mise à jour', theme:'🎨 Thème du site changé', poll:'🗳️ Sondage lancé' };
     rows.forEach(r => {
       const item = document.createElement('div');
       item.className = 'ticket-item';
@@ -2717,6 +3060,7 @@ document.getElementById('downloadBtn').addEventListener('click', downloadMissing
 updateProfileChip();
 render();
 loadAnnouncement();
+loadTheme();
 checkMaintenance().then(maintenanceMsg => {
   if(maintenanceMsg){
     document.getElementById('maintenanceText').textContent = maintenanceMsg;
@@ -2734,6 +3078,7 @@ checkMaintenance().then(maintenanceMsg => {
 setInterval(async () => {
   // Annonce : toujours à jour
   loadAnnouncement();
+  loadTheme();
 
   // Maintenance : si activée entre-temps et qu'on n'est pas admin, on bloque immédiatement
   const adminCodeOpen = !document.getElementById('adminCodeModal').classList.contains('hidden');
