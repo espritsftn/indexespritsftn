@@ -1479,6 +1479,12 @@ async function openAdminPanel(){
   document.getElementById('adminPanelModal').classList.remove('hidden');
 
   const tickets = await loadTickets();
+  tickets.sort((a,b) => {
+    const aOpen = a.status === 'open' ? 0 : 1;
+    const bOpen = b.status === 'open' ? 0 : 1;
+    if(aOpen !== bOpen) return aOpen - bOpen;
+    return new Date(b.created_at) - new Date(a.created_at);
+  });
 
   if(tickets.length === 0){
     list.innerHTML = '<div style="color:var(--muted); font-size:12px; text-align:center; padding:20px 0;">Aucun ticket pour le moment.</div>';
@@ -1491,7 +1497,9 @@ async function openAdminPanel(){
     item.className = 'ticket-item';
     const dateTxt = new Date(t.created_at).toLocaleString('fr-FR', { day:'2-digit', month:'2-digit', hour:'2-digit', minute:'2-digit' });
     const espritsHtml = t.esprits.map(k => { const label = describeEspritKey(k); return label ? `<span>${label}</span>` : ''; }).join('');
+    item.style.position = 'relative';
     item.innerHTML = `
+      ${t.status === 'closed' ? `<button type="button" class="ticketDismissBtn" title="Supprimer" style="position:absolute; top:10px; right:10px; border:none; background:transparent; color:var(--muted); font-size:16px; cursor:pointer; line-height:1;">✕</button>` : ''}
       <div class="th">
         <div class="who">${t.fortnite} <span class="disc">· Discord: ${t.discord || '—'}</span></div>
         <span class="status-badge ${t.status === 'answered' ? 'answered' : (t.status === 'closed' ? 'answered' : 'open')}">${t.status === 'answered' ? 'Répondu' : (t.status === 'closed' ? 'Fermé' : 'Ouvert')}</span>
@@ -1516,6 +1524,15 @@ async function openAdminPanel(){
       showToast('✓ Ticket fermé');
       openAdminPanel();
     });
+    const dismissBtn = item.querySelector('.ticketDismissBtn');
+    if(dismissBtn){
+      dismissBtn.addEventListener('click', async () => {
+        dismissBtn.disabled = true;
+        const res = await sb('tickets?id=eq.' + encodeURIComponent(t.id), { method:'DELETE' });
+        if(!res.ok){ showToast('⚠ Échec de la suppression'); dismissBtn.disabled = false; return; }
+        item.remove();
+      });
+    }
     const textarea = item.querySelector('textarea');
     const replyBtn = item.querySelector('.ticket-reply button');
     replyBtn.addEventListener('click', async () => {
@@ -2298,15 +2315,32 @@ async function openSuggestions(adminMode){
     if(!res.ok){ list.innerHTML = '<div style="color:var(--muted); font-size:12px;">Erreur de chargement.</div>'; return; }
     const rows = await res.json();
     if(rows.length === 0){ list.innerHTML = '<div style="color:var(--muted); font-size:12px; text-align:center; padding:16px 0;">' + (adminMode ? 'Aucune suggestion pour l\'instant.' : 'Tu n\'as pas encore envoyé de suggestion.') + '</div>'; return; }
+    rows.sort((a,b) => {
+      const aDone = a.status === 'faite' ? 1 : 0;
+      const bDone = b.status === 'faite' ? 1 : 0;
+      if(aDone !== bDone) return aDone - bDone;
+      return new Date(b.created_at) - new Date(a.created_at);
+    });
     list.innerHTML = '';
     const STATUS_LABEL = { nouvelle:'Nouvelle', 'en cours':'En cours', faite:'Faite' };
     rows.forEach(s => {
       const item = document.createElement('div');
       item.className = 'ticket-item';
+      item.style.position = 'relative';
       item.innerHTML = `
+        ${adminMode && s.status === 'faite' ? `<button type="button" class="suggestDismissBtn" title="Supprimer" style="position:absolute; top:10px; right:10px; border:none; background:transparent; color:var(--muted); font-size:16px; cursor:pointer; line-height:1;">✕</button>` : ''}
         <div class="th"><div class="who">${adminMode ? s.fortnite : 'Ta suggestion'}</div><span class="status-badge ${s.status==='faite'?'answered':'open'}">${STATUS_LABEL[s.status]||s.status}</span></div>
         <div style="font-size:12.5px; margin-top:4px;">${s.content.replace(/</g,'&lt;')}</div>
       `;
+      const dismissBtn = item.querySelector('.suggestDismissBtn');
+      if(dismissBtn){
+        dismissBtn.addEventListener('click', async () => {
+          dismissBtn.disabled = true;
+          const r = await sb('suggestions?id=eq.' + encodeURIComponent(s.id), { method:'DELETE' });
+          if(!r.ok){ showToast('⚠ Échec de la suppression'); dismissBtn.disabled = false; return; }
+          item.remove();
+        });
+      }
       if(adminMode){
         const row = document.createElement('div');
         row.style.cssText = 'display:flex; gap:6px; margin-top:8px;';
