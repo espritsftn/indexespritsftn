@@ -197,6 +197,11 @@
   @keyframes announceGlow{ 0%{background-position:0% 50%;} 50%{background-position:100% 50%;} 100%{background-position:0% 50%;} }
 
   .status-dot{ width:9px; height:9px; border-radius:50%; display:inline-block; margin-right:5px; flex:none; }
+  .badge-count{
+    position:absolute; top:-6px; right:-6px; background:#ff5a78; color:#fff; font-size:10px; font-weight:800;
+    min-width:17px; height:17px; border-radius:9px; display:flex; align-items:center; justify-content:center;
+    padding:0 4px; box-shadow:0 0 0 2px var(--bg);
+  }
   .status-dot.online{ background:#2de2c0; box-shadow:0 0 6px #2de2c0; }
   .status-dot.offline{ background:#565d80; }
 
@@ -329,6 +334,11 @@
   </div>
 </div>
 
+<div id="countdownBanner" style="display:none; max-width:920px; margin:12px auto 0; padding:14px 20px; background:rgba(139,92,246,0.12); border:2px solid rgba(139,92,246,0.5); border-radius:16px; text-align:center;">
+  <div id="countdownLabelText" style="font-size:13px; color:#c9a2ff; font-weight:700; margin-bottom:4px;"></div>
+  <div id="countdownTimer" style="font-size:24px; font-weight:800; font-family:'Rajdhani',sans-serif; color:#fff;"></div>
+</div>
+
 <div class="toolbar">
   <div class="filters">
     <button class="filter-btn active" data-filter="all" type="button">Tous</button>
@@ -350,7 +360,7 @@
   </div>
   <div class="action-row">
     <button class="ticket-btn" id="openTicketBtn" type="button">🎫 Créer un ticket</button>
-    <button class="admin-btn" id="myTicketsBtn" type="button">📨 Messages</button>
+    <button class="admin-btn" id="myTicketsBtn" type="button" style="position:relative;">📨 Messages<span id="msgBadge" class="badge-count" style="display:none;">1</span></button>
     <button class="admin-btn" id="openAdminBtn" type="button">🔑 Panel admin</button>
   </div>
 </div>
@@ -513,7 +523,7 @@
     <h2>🔑 Panel admin</h2>
     <p class="hint">Choisis une section.</p>
     <div style="display:flex; flex-direction:column; gap:8px;">
-      <button class="admin-btn" id="adminGoTickets" type="button" style="width:100%; justify-content:flex-start;">🎫 Tickets des joueurs</button>
+      <button class="admin-btn" id="adminGoTickets" type="button" style="width:100%; justify-content:flex-start; position:relative;">🎫 Tickets des joueurs<span id="ticketBadge" class="badge-count" style="display:none;">1</span></button>
       <button class="admin-btn" id="adminGoAnnounce" type="button" style="width:100%; justify-content:flex-start;">📢 Annonce du site</button>
       <button class="admin-btn" id="adminGoBans" type="button" style="width:100%; justify-content:flex-start;">⛔ Bannissements</button>
       <button class="admin-btn" id="adminGoSearch" type="button" style="width:100%; justify-content:flex-start;">🔍 Rechercher / modifier un joueur</button>
@@ -527,6 +537,8 @@
       <button class="admin-btn" id="adminGoTradesHistory" type="button" style="width:100%; justify-content:flex-start;">🔄 Historique des échanges</button>
       <button class="admin-btn" id="adminGoPoll" type="button" style="width:100%; justify-content:flex-start;">🗳️ Sondage flash</button>
       <button class="admin-btn" id="adminGoTheme" type="button" style="width:100%; justify-content:flex-start;">🎨 Thème du site</button>
+      <button class="admin-btn" id="adminGoCountdown" type="button" style="width:100%; justify-content:flex-start;">⏳ Compte à rebours</button>
+      <button class="admin-btn" id="adminGoReports" type="button" style="width:100%; justify-content:flex-start; position:relative;">🚩 Signalements<span id="reportBadge" class="badge-count" style="display:none;">1</span></button>
     </div>
     <div class="modal-actions">
       <button class="btn-ghost" id="adminMenuClose" type="button">Fermer</button>
@@ -542,6 +554,10 @@
     <div class="field">
       <label for="announceInput">Message</label>
       <input type="text" id="announceInput" maxlength="180" placeholder="Ex: Nouvel esprit disponible ce soir !">
+    </div>
+    <div class="field">
+      <label for="announceSchedule">Programmer pour plus tard (optionnel)</label>
+      <input type="datetime-local" id="announceSchedule">
     </div>
     <div class="modal-actions">
       <button class="btn-ghost" id="announceBack" type="button">Retour</button>
@@ -628,6 +644,7 @@
     <div id="playerActionRow" style="display:none; gap:8px; margin-top:14px; flex-wrap:wrap;">
       <button class="ticket-btn" id="playerTradeBtn" type="button" style="flex:1; justify-content:center;">🔄 Échanger</button>
       <button class="admin-btn" id="playerMsgBtn" type="button" style="flex:1; justify-content:center;">💬 Message</button>
+      <button class="admin-btn" id="playerReportBtn" type="button" style="flex:1; justify-content:center; border-color:#ff5a78 !important; color:#ff5a78;">🚩 Signaler</button>
     </div>
     <div id="adminPlayerActionRow" style="display:none; gap:8px; margin-top:10px; flex-wrap:wrap;">
       <button class="admin-btn" id="playerPersonalMsgBtn" type="button" style="flex:1; justify-content:center; border-color:var(--purple) !important; color:var(--purple);">📩 Message perso</button>
@@ -711,6 +728,10 @@
     <div class="field">
       <label for="maintenanceMsgInput">Message affiché aux joueurs</label>
       <input type="text" id="maintenanceMsgInput" maxlength="160" placeholder="Le site revient bientôt !">
+    </div>
+    <div class="field">
+      <label for="maintenanceSchedule">Programmer l'activation pour plus tard (optionnel)</label>
+      <input type="datetime-local" id="maintenanceSchedule">
     </div>
     <div class="field">
       <label for="maintenanceCodeInput">Code de confirmation</label>
@@ -815,6 +836,10 @@
     <div class="field"><label>Option 2</label><input type="text" id="pollOpt1" maxlength="60"></div>
     <div class="field"><label>Option 3 (optionnel)</label><input type="text" id="pollOpt2" maxlength="60"></div>
     <div class="field"><label>Option 4 (optionnel)</label><input type="text" id="pollOpt3" maxlength="60"></div>
+    <div class="field">
+      <label for="pollEndsAt">Fin automatique (optionnel)</label>
+      <input type="datetime-local" id="pollEndsAt">
+    </div>
     <div class="modal-actions">
       <button class="btn-ghost" id="pollAdminBack" type="button">Retour</button>
       <button class="btn-primary" id="pollLaunch" type="button">Lancer</button>
@@ -838,16 +863,72 @@
 <div class="modal-backdrop hidden" id="themeModal">
   <div class="modal">
     <h2>🎨 Thème du site</h2>
-    <p class="hint">Change la couleur de fond pour tout le monde.</p>
+    <p class="hint">Change le fond pour tout le monde.</p>
     <div class="field">
-      <label for="themeColorInput">Couleur d'arrière-plan</label>
+      <label>Thèmes élémentaires</label>
+      <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:6px;">
+        <button type="button" class="theme-preset" data-theme="linear-gradient(160deg,#0a2a4d,#0e4d6e,#123a5e)" style="flex:1; min-width:90px; padding:10px; border-radius:9px; border:1px solid var(--line); background:linear-gradient(160deg,#0a2a4d,#0e4d6e,#123a5e); color:#fff; font-weight:700; font-size:12px; cursor:pointer;">🌊 Eau</button>
+        <button type="button" class="theme-preset" data-theme="linear-gradient(160deg,#4d1408,#7a2a0a,#a8390f)" style="flex:1; min-width:90px; padding:10px; border-radius:9px; border:1px solid var(--line); background:linear-gradient(160deg,#4d1408,#7a2a0a,#a8390f); color:#fff; font-weight:700; font-size:12px; cursor:pointer;">🔥 Feu</button>
+        <button type="button" class="theme-preset" data-theme="linear-gradient(160deg,#1a3d1a,#2f4d1e,#3d5a25)" style="flex:1; min-width:90px; padding:10px; border-radius:9px; border:1px solid var(--line); background:linear-gradient(160deg,#1a3d1a,#2f4d1e,#3d5a25); color:#fff; font-weight:700; font-size:12px; cursor:pointer;">🌍 Terre</button>
+        <button type="button" class="theme-preset" data-theme="linear-gradient(160deg,#0a0d16,#171d34,#12172a)" style="flex:1; min-width:90px; padding:10px; border-radius:9px; border:1px solid var(--line); background:#171d34; color:#fff; font-weight:700; font-size:12px; cursor:pointer;">✨ Par défaut</button>
+      </div>
+    </div>
+    <div class="field">
+      <label for="themeColorInput">Ou une couleur unie</label>
       <input type="color" id="themeColorInput" value="#0a0d16" style="width:100%; height:44px; border:1px solid var(--line); border-radius:9px; background:var(--panel-2); padding:4px;">
     </div>
     <div class="modal-actions">
       <button class="btn-ghost" id="themeBack" type="button">Retour</button>
-      <button class="btn-primary" id="themeApply" type="button">Appliquer à tout le monde</button>
+      <button class="btn-primary" id="themeApply" type="button">Appliquer la couleur</button>
     </div>
     <button id="themeReset" type="button" style="width:100%; margin-top:10px; border:1px solid var(--line); background:var(--panel-2); color:var(--teal); padding:10px; border-radius:9px; font-weight:700; cursor:pointer;">Réinitialiser le thème par défaut</button>
+  </div>
+</div>
+
+<!-- Compte à rebours (admin) -->
+<div class="modal-backdrop hidden" id="countdownModal">
+  <div class="modal">
+    <h2>⏳ Compte à rebours</h2>
+    <p class="hint">Affiché en bandeau pour tout le monde jusqu'à la date choisie.</p>
+    <div class="field">
+      <label for="countdownLabel">Message</label>
+      <input type="text" id="countdownLabel" maxlength="120" placeholder="Ex: Fin de l'event Cube dans...">
+    </div>
+    <div class="field">
+      <label for="countdownEnd">Date et heure de fin</label>
+      <input type="datetime-local" id="countdownEnd">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="countdownBack" type="button">Retour</button>
+      <button class="btn-primary" id="countdownLaunch" type="button">Lancer</button>
+    </div>
+    <button id="countdownClear" type="button" style="width:100%; margin-top:10px; border:1px solid var(--line); background:var(--panel-2); color:var(--muted); padding:10px; border-radius:9px; font-weight:700; cursor:pointer;">Retirer le compte à rebours</button>
+  </div>
+</div>
+
+<!-- Signalements (admin) -->
+<div class="modal-backdrop hidden" id="reportsModal">
+  <div class="modal" style="max-width:480px;">
+    <h2>🚩 Signalements</h2>
+    <div id="reportsList" style="max-height:60vh; overflow-y:auto;"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="reportsBack" type="button">Retour</button>
+    </div>
+  </div>
+</div>
+
+<!-- Signaler un joueur (côté joueur, depuis sa fiche) -->
+<div class="modal-backdrop hidden" id="reportModal">
+  <div class="modal">
+    <h2>🚩 Signaler ce joueur</h2>
+    <div class="field">
+      <label for="reportReason">Raison</label>
+      <input type="text" id="reportReason" maxlength="200" placeholder="Explique le problème...">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="reportBack" type="button">Annuler</button>
+      <button class="btn-primary" id="reportSubmit" type="button">Envoyer le signalement</button>
+    </div>
   </div>
 </div>
 
@@ -920,6 +1001,27 @@ let currentRarity = "all";
 let profile = null; // { fortnite, discord }, rempli après connexion
 let accessToken = null;
 let bannedFortnite = null; // pseudo actuellement bloqué par un ban, pour pouvoir restaurer sans reconnexion
+let messagesModalOpen = false;
+async function updateMessagesBadge(){
+  if(!profile || !profile.fortnite) return;
+  try{
+    const res = await sb('messages?to_fortnite=eq.' + encodeURIComponent(profile.fortnite) + '&read=eq.false&select=id');
+    const n = res.ok ? (await res.json()).length : 0;
+    const badge = document.getElementById('msgBadge');
+    badge.textContent = n > 9 ? '9+' : n;
+    badge.style.display = n > 0 ? 'flex' : 'none';
+  }catch(e){}
+}
+async function updateTicketBadge(){
+  if(!isAdmin) return;
+  try{
+    const res = await sb('tickets?status=eq.open&select=id');
+    const n = res.ok ? (await res.json()).length : 0;
+    const badge = document.getElementById('ticketBadge');
+    badge.textContent = n > 9 ? '9+' : n;
+    badge.style.display = n > 0 ? 'flex' : 'none';
+  }catch(e){}
+}
 let bannedToken = null;
 let ticketSelection = [];
 
@@ -1022,6 +1124,7 @@ function applySession(token, user){
   document.getElementById('authGate').classList.add('hidden');
   document.getElementById('banGate').classList.add('hidden');
   upsertProfile(profile.fortnite, profile.discord);
+  updateMessagesBadge();
 }
 
 async function tryRestoreSession(){
@@ -1363,20 +1466,24 @@ document.getElementById('ticketSubmit').addEventListener('click', async () => {
   submitBtn.disabled = false;
 });
 
-document.getElementById('myTicketsBtn').addEventListener('click', openMyTickets);
+document.getElementById('myTicketsBtn').addEventListener('click', () => openMyTickets(false));
 document.getElementById('myTicketsClose').addEventListener('click', () => {
   document.getElementById('myTicketsModal').classList.add('hidden');
+  messagesModalOpen = false;
 });
 
-async function openMyTickets(){
+async function openMyTickets(silent){
   if(!profile || !profile.fortnite){
     showToast('⚠ Connecte-toi d\'abord (pseudo Fortnite)');
     document.getElementById('authGate').classList.remove('hidden');
     return;
   }
+  messagesModalOpen = true;
   const list = document.getElementById('myTicketList');
-  list.innerHTML = '<div style="color:var(--muted); font-size:12px;">Chargement...</div>';
-  document.getElementById('myTicketsModal').classList.remove('hidden');
+  if(!silent){
+    list.innerHTML = '<div style="color:var(--muted); font-size:12px;">Chargement...</div>';
+    document.getElementById('myTicketsModal').classList.remove('hidden');
+  }
 
   const [allTickets, tradesRes, msgRes] = await Promise.all([
     loadTickets(),
@@ -1386,6 +1493,12 @@ async function openMyTickets(){
   const mine = allTickets.filter(t => t.fortnite && t.fortnite.toLowerCase() === profile.fortnite.toLowerCase());
   const incomingTrades = tradesRes.ok ? await tradesRes.json() : [];
   const allMessages = msgRes.ok ? await msgRes.json() : [];
+
+  // Marque les messages reçus comme lus puisqu'on est en train de les consulter
+  const unread = allMessages.filter(m => m.to_fortnite.toLowerCase() === profile.fortnite.toLowerCase() && !m.read);
+  if(unread.length){
+    Promise.all(unread.map(m => sb('messages?id=eq.' + encodeURIComponent(m.id), { method:'PATCH', headers:{'Prefer':'return=minimal'}, body: JSON.stringify({read:true}) }))).then(updateMessagesBadge);
+  }
 
   list.innerHTML = '';
 
@@ -1473,12 +1586,13 @@ async function openMyTickets(){
           <span style="display:inline-block; max-width:80%; padding:6px 10px; border-radius:10px; font-size:12.5px; background:${mine2?'var(--teal)':'var(--panel)'}; color:${mine2?'#06131a':'var(--text)'};">${m.content.replace(/</g,'&lt;')}</span>
         </div>`;
       }).join('');
-      block.innerHTML = `<div class="who" style="margin-bottom:6px;">${other}</div><div>${bubbles}</div>`;
+      block.innerHTML = `<div class="who" style="margin-bottom:6px;">${other}</div><div>${bubbles}</div><div id="typing-${cssEscape(other)}" style="font-size:11px; color:var(--muted); font-style:italic; min-height:14px; margin-top:2px;"></div>`;
       const replyRow = document.createElement('div');
       replyRow.style.cssText = 'display:flex; gap:6px; margin-top:8px;';
       const input = document.createElement('input');
       input.type = 'text'; input.placeholder = 'Répondre...'; input.maxLength = 300;
       input.style.cssText = 'flex:1; background:var(--panel); border:1px solid var(--line); color:var(--text); padding:8px 10px; border-radius:8px; font-size:12.5px;';
+      input.addEventListener('input', () => setTyping(other));
       const sendBtn = document.createElement('button');
       sendBtn.type = 'button'; sendBtn.textContent = 'Envoyer';
       sendBtn.style.cssText = 'border:none; cursor:pointer; background:var(--teal); color:#06131a; padding:8px 12px; border-radius:8px; font-weight:700; font-size:12px;';
@@ -1493,6 +1607,7 @@ async function openMyTickets(){
       replyRow.appendChild(input); replyRow.appendChild(sendBtn);
       block.appendChild(replyRow);
       list.appendChild(block);
+      checkTyping(other);
     });
   }
 
@@ -1509,6 +1624,34 @@ async function sendMessage(toFortnite, content){
     });
     return res.ok;
   }catch(e){ return false; }
+}
+
+function cssEscape(str){ return String(str).replace(/[^a-zA-Z0-9_-]/g, '_'); }
+
+let typingDebounce = null;
+function setTyping(toFortnite){
+  if(!profile) return;
+  clearTimeout(typingDebounce);
+  typingDebounce = setTimeout(async () => {
+    try{
+      await sb('typing?on_conflict=id', {
+        method:'POST', headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},
+        body: JSON.stringify({ id: profile.fortnite + '>' + toFortnite, from_fortnite: profile.fortnite, to_fortnite: toFortnite, updated_at: new Date().toISOString() })
+      });
+    }catch(e){}
+  }, 300);
+}
+async function checkTyping(other){
+  if(!profile) return;
+  try{
+    const res = await sb('typing?id=eq.' + encodeURIComponent(other + '>' + profile.fortnite) + '&select=updated_at');
+    if(!res.ok) return;
+    const rows = await res.json();
+    const el = document.getElementById('typing-' + cssEscape(other));
+    if(!el) return;
+    const isTyping = rows.length && (Date.now() - new Date(rows[0].updated_at).getTime()) < 6000;
+    el.textContent = isTyping ? '✍️ ' + other + ' est en train d\'écrire...' : '';
+  }catch(e){}
 }
 
 // ---------- Admin ----------
@@ -1533,6 +1676,7 @@ document.getElementById('adminCodeSubmit').addEventListener('click', async () =>
   document.getElementById('adminCodeModal').classList.add('hidden');
   document.getElementById('maintenanceGate').classList.add('hidden');
   document.getElementById('adminMenuModal').classList.remove('hidden');
+  updateTicketBadge();
 });
 document.getElementById('adminMenuClose').addEventListener('click', () => {
   document.getElementById('adminMenuModal').classList.add('hidden');
@@ -1698,9 +1842,25 @@ document.getElementById('announceBack').addEventListener('click', () => {
 });
 document.getElementById('announceSave').addEventListener('click', async () => {
   const msg = document.getElementById('announceInput').value.trim();
+  const scheduleVal = document.getElementById('announceSchedule').value;
   const btn = document.getElementById('announceSave');
   btn.disabled = true;
   try{
+    if(scheduleVal){
+      const at = new Date(scheduleVal).toISOString();
+      const res = await sb('settings?on_conflict=key', {
+        method:'POST', headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},
+        body: JSON.stringify({ key:'scheduled_announcement', value: JSON.stringify({message: msg, at}) })
+      });
+      if(!res.ok){ showToast('⚠ Échec de la programmation'); btn.disabled=false; return; }
+      showToast('✓ Annonce programmée pour ' + new Date(at).toLocaleString('fr-FR'));
+      logAdminAction('announcement', null, 'Programmée : ' + msg + ' à ' + at);
+      document.getElementById('announceSchedule').value = '';
+      document.getElementById('announceModal').classList.add('hidden');
+      document.getElementById('adminMenuModal').classList.remove('hidden');
+      btn.disabled = false;
+      return;
+    }
     const res = await sb('announcements?on_conflict=id', {
       method:'POST',
       headers:{ 'Prefer':'resolution=merge-duplicates,return=minimal' },
@@ -2006,6 +2166,9 @@ async function sendScreenEvent(toFortnite, type, content){
   }catch(e){ return false; }
 }
 
+document.getElementById('playerMsgInput').addEventListener('input', () => {
+  if(viewedPlayer) setTyping(viewedPlayer.fortnite);
+});
 document.getElementById('playerMsgSend').addEventListener('click', async () => {
   const val = document.getElementById('playerMsgInput').value.trim();
   if(!val){ showToast('⚠ Écris un message'); return; }
@@ -2303,8 +2466,25 @@ async function setMaintenance(value){
 document.getElementById('maintenanceOn').addEventListener('click', async () => {
   if(document.getElementById('maintenanceCodeInput').value.trim() !== MAINTENANCE_CODE){ showToast('⚠ Code incorrect'); return; }
   const msg = document.getElementById('maintenanceMsgInput').value.trim() || 'Le site revient bientôt, merci de ta patience !';
+  const scheduleVal = document.getElementById('maintenanceSchedule').value;
   const btn = document.getElementById('maintenanceOn');
   btn.disabled = true;
+  if(scheduleVal){
+    const at = new Date(scheduleVal).toISOString();
+    const res = await sb('settings?on_conflict=key', {
+      method:'POST', headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},
+      body: JSON.stringify({ key:'scheduled_maintenance', value: JSON.stringify({message: msg, at}) })
+    });
+    btn.disabled = false;
+    if(!res.ok){ showToast('⚠ Échec de la programmation'); return; }
+    showToast('✓ Maintenance programmée pour ' + new Date(at).toLocaleString('fr-FR'));
+    logAdminAction('maintenance_on', null, 'Programmée à ' + at + ' — ' + msg);
+    document.getElementById('maintenanceSchedule').value = '';
+    document.getElementById('maintenanceCodeInput').value = '';
+    document.getElementById('maintenanceModal').classList.add('hidden');
+    document.getElementById('adminMenuModal').classList.remove('hidden');
+    return;
+  }
   const ok = await setMaintenance(msg);
   btn.disabled = false;
   if(!ok){ showToast('⚠ Échec de l\'activation'); return; }
@@ -2393,7 +2573,7 @@ async function openTradesHistory(){
 // ---------- Sondage flash ----------
 document.getElementById('adminGoPoll').addEventListener('click', () => {
   document.getElementById('adminMenuModal').classList.add('hidden');
-  ['pollQuestion','pollOpt0','pollOpt1','pollOpt2','pollOpt3'].forEach(id => document.getElementById(id).value = '');
+  ['pollQuestion','pollOpt0','pollOpt1','pollOpt2','pollOpt3','pollEndsAt'].forEach(id => document.getElementById(id).value = '');
   document.getElementById('pollAdminModal').classList.remove('hidden');
 });
 document.getElementById('pollAdminBack').addEventListener('click', () => {
@@ -2404,13 +2584,15 @@ document.getElementById('pollLaunch').addEventListener('click', async () => {
   const question = document.getElementById('pollQuestion').value.trim();
   const options = ['pollOpt0','pollOpt1','pollOpt2','pollOpt3'].map(id => document.getElementById(id).value.trim()).filter(Boolean);
   if(!question || options.length < 2){ showToast('⚠ Question + au moins 2 options requis'); return; }
+  const endsVal = document.getElementById('pollEndsAt').value;
+  const ends_at = endsVal ? new Date(endsVal).toISOString() : null;
   const btn = document.getElementById('pollLaunch');
   btn.disabled = true;
   try{
     await sb('poll_votes?created_at=lt.' + encodeURIComponent(new Date(Date.now()+86400000).toISOString()), { method:'DELETE' });
     const res = await sb('polls?on_conflict=id', {
       method:'POST', headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},
-      body: JSON.stringify({ id:'current', question, options, created_at: new Date().toISOString() })
+      body: JSON.stringify({ id:'current', question, options, ends_at, created_at: new Date().toISOString() })
     });
     if(!res.ok){ showToast('⚠ Échec du lancement'); btn.disabled=false; return; }
     showToast('✓ Sondage lancé');
@@ -2442,13 +2624,14 @@ async function openPollVote(){
   content.innerHTML = '<div style="color:var(--muted); font-size:12px;">Chargement...</div>';
   document.getElementById('pollVoteModal').classList.remove('hidden');
   try{
-    const pollRes = await sb('polls?id=eq.current&select=question,options');
+    const pollRes = await sb('polls?id=eq.current&select=question,options,ends_at');
     const pollRows = pollRes.ok ? await pollRes.json() : [];
     if(pollRows.length === 0 || !pollRows[0].question){
       content.innerHTML = '<div style="color:var(--muted); font-size:12px; text-align:center; padding:16px 0;">Aucun sondage en cours.</div>';
       return;
     }
     const poll = pollRows[0];
+    const ended = poll.ends_at && new Date(poll.ends_at) <= new Date();
     const myVoteRes = await sb('poll_votes?id=eq.' + encodeURIComponent(profile.fortnite) + '&select=option_index');
     const myVoteRows = myVoteRes.ok ? await myVoteRes.json() : [];
     const myVote = myVoteRows.length ? myVoteRows[0].option_index : null;
@@ -2458,25 +2641,28 @@ async function openPollVote(){
     const counts = poll.options.map((_,i) => allVotes.filter(v => v.option_index === i).length);
     const total = counts.reduce((a,b)=>a+b,0);
 
-    content.innerHTML = `<h2 style="font-size:16px; margin-bottom:12px;">${poll.question.replace(/</g,'&lt;')}</h2>`;
+    content.innerHTML = `<h2 style="font-size:16px; margin-bottom:4px;">${poll.question.replace(/</g,'&lt;')}</h2>` +
+      (ended ? '<p class="hint" style="color:#ff8ba1; margin-bottom:10px;">⏹ Sondage terminé</p>' : (poll.ends_at ? `<p class="hint" style="margin-bottom:10px;">Se termine le ${new Date(poll.ends_at).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</p>` : '<div style="margin-bottom:10px;"></div>'));
     poll.options.forEach((opt,i) => {
       const pct = total ? Math.round((counts[i]/total)*100) : 0;
       const row = document.createElement('div');
-      row.style.cssText = 'margin-bottom:10px; cursor:pointer;';
+      row.style.cssText = 'margin-bottom:10px;' + (ended ? '' : ' cursor:pointer;');
       row.innerHTML = `
         <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px;">
           <span>${myVote === i ? '✓ ' : ''}${opt.replace(/</g,'&lt;')}</span><span style="color:var(--muted);">${pct}% (${counts[i]})</span>
         </div>
         <div style="height:8px; background:var(--panel-2); border-radius:5px; overflow:hidden;"><div style="height:100%; width:${pct}%; background:${myVote===i?'var(--teal)':'var(--purple)'};"></div></div>
       `;
-      row.addEventListener('click', async () => {
-        const r = await sb('poll_votes?on_conflict=id', {
-          method:'POST', headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},
-          body: JSON.stringify({ id: profile.fortnite, option_index: i })
+      if(!ended){
+        row.addEventListener('click', async () => {
+          const r = await sb('poll_votes?on_conflict=id', {
+            method:'POST', headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},
+            body: JSON.stringify({ id: profile.fortnite, option_index: i })
+          });
+          if(!r.ok){ showToast('⚠ Échec du vote'); return; }
+          openPollVote();
         });
-        if(!r.ok){ showToast('⚠ Échec du vote'); return; }
-        openPollVote();
-      });
+      }
       content.appendChild(row);
     });
   }catch(e){ content.innerHTML = '<div style="color:var(--muted); font-size:12px;">Erreur réseau.</div>'; }
@@ -2491,18 +2677,24 @@ document.getElementById('themeBack').addEventListener('click', () => {
   document.getElementById('themeModal').classList.add('hidden');
   document.getElementById('adminMenuModal').classList.remove('hidden');
 });
+async function applyThemeValue(value, label){
+  const res = await sb('settings?on_conflict=key', { method:'POST', headers:{'Prefer':'resolution=merge-duplicates,return=minimal'}, body: JSON.stringify({ key:'theme_bg', value }) });
+  if(!res.ok){ showToast('⚠ Échec'); return; }
+  showToast('✓ Thème ' + label + ' appliqué à tout le monde');
+  logAdminAction('theme', null, label);
+  applyTheme(value);
+  document.getElementById('themeModal').classList.add('hidden');
+  document.getElementById('adminMenuModal').classList.remove('hidden');
+}
+document.querySelectorAll('.theme-preset').forEach(btn => {
+  btn.addEventListener('click', () => applyThemeValue(btn.dataset.theme, btn.textContent.trim()));
+});
 document.getElementById('themeApply').addEventListener('click', async () => {
   const color = document.getElementById('themeColorInput').value;
   const btn = document.getElementById('themeApply');
   btn.disabled = true;
-  const res = await sb('settings?on_conflict=key', { method:'POST', headers:{'Prefer':'resolution=merge-duplicates,return=minimal'}, body: JSON.stringify({ key:'theme_bg', value: color }) });
+  await applyThemeValue(color, 'personnalisé');
   btn.disabled = false;
-  if(!res.ok){ showToast('⚠ Échec'); return; }
-  showToast('✓ Thème appliqué à tout le monde');
-  logAdminAction('theme', null, color);
-  applyTheme(color);
-  document.getElementById('themeModal').classList.add('hidden');
-  document.getElementById('adminMenuModal').classList.remove('hidden');
 });
 document.getElementById('themeReset').addEventListener('click', async () => {
   const btn = document.getElementById('themeReset');
@@ -2524,6 +2716,174 @@ async function loadTheme(){
     if(!res.ok) return;
     const rows = await res.json();
     applyTheme(rows.length ? rows[0].value : '');
+  }catch(e){}
+}
+
+// ---------- Programmation (annonce / maintenance à l'avance) ----------
+async function checkScheduled(){
+  try{
+    const res = await sb('settings?key=in.(scheduled_announcement,scheduled_maintenance)&select=key,value');
+    if(!res.ok) return;
+    const rows = await res.json();
+    for(const row of rows){
+      if(!row.value) continue;
+      let data; try{ data = JSON.parse(row.value); }catch(e){ continue; }
+      if(!data.at || new Date(data.at) > new Date()) continue; // pas encore l'heure
+
+      if(row.key === 'scheduled_announcement'){
+        await sb('announcements?on_conflict=id', {
+          method:'POST', headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},
+          body: JSON.stringify({ id:'current', message: data.message, updated_at: new Date().toISOString() })
+        });
+        loadAnnouncement();
+      } else if(row.key === 'scheduled_maintenance'){
+        await setMaintenance(data.message);
+      }
+      // Programmation consommée : on l'efface
+      await sb('settings?on_conflict=key', {
+        method:'POST', headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},
+        body: JSON.stringify({ key: row.key, value: '' })
+      });
+    }
+  }catch(e){ /* pas bloquant */ }
+}
+
+// ---------- Compte à rebours ----------
+document.getElementById('adminGoCountdown').addEventListener('click', () => {
+  document.getElementById('adminMenuModal').classList.add('hidden');
+  document.getElementById('countdownLabel').value = '';
+  document.getElementById('countdownEnd').value = '';
+  document.getElementById('countdownModal').classList.remove('hidden');
+});
+document.getElementById('countdownBack').addEventListener('click', () => {
+  document.getElementById('countdownModal').classList.add('hidden');
+  document.getElementById('adminMenuModal').classList.remove('hidden');
+});
+document.getElementById('countdownLaunch').addEventListener('click', async () => {
+  const label = document.getElementById('countdownLabel').value.trim();
+  const endVal = document.getElementById('countdownEnd').value;
+  if(!label || !endVal){ showToast('⚠ Message + date requis'); return; }
+  const endsAt = new Date(endVal).toISOString();
+  const btn = document.getElementById('countdownLaunch');
+  btn.disabled = true;
+  const res = await sb('settings?on_conflict=key', { method:'POST', headers:{'Prefer':'resolution=merge-duplicates,return=minimal'}, body: JSON.stringify({ key:'countdown', value: JSON.stringify({label, endsAt}) }) });
+  btn.disabled = false;
+  if(!res.ok){ showToast('⚠ Échec'); return; }
+  showToast('✓ Compte à rebours lancé');
+  logAdminAction('countdown', null, label + ' → ' + endsAt);
+  loadCountdown();
+  document.getElementById('countdownModal').classList.add('hidden');
+  document.getElementById('adminMenuModal').classList.remove('hidden');
+});
+document.getElementById('countdownClear').addEventListener('click', async () => {
+  const btn = document.getElementById('countdownClear');
+  btn.disabled = true;
+  const res = await sb('settings?on_conflict=key', { method:'POST', headers:{'Prefer':'resolution=merge-duplicates,return=minimal'}, body: JSON.stringify({ key:'countdown', value:'' }) });
+  btn.disabled = false;
+  if(!res.ok){ showToast('⚠ Échec'); return; }
+  showToast('✓ Compte à rebours retiré');
+  loadCountdown();
+  document.getElementById('countdownModal').classList.add('hidden');
+  document.getElementById('adminMenuModal').classList.remove('hidden');
+});
+let countdownData = null;
+async function loadCountdown(){
+  try{
+    const res = await sb('settings?key=eq.countdown&select=value');
+    if(!res.ok) return;
+    const rows = await res.json();
+    if(!rows.length || !rows[0].value){ countdownData = null; document.getElementById('countdownBanner').style.display = 'none'; return; }
+    countdownData = JSON.parse(rows[0].value);
+    document.getElementById('countdownLabelText').textContent = countdownData.label;
+    document.getElementById('countdownBanner').style.display = 'block';
+    renderCountdownTick();
+  }catch(e){}
+}
+function renderCountdownTick(){
+  if(!countdownData) return;
+  const diff = new Date(countdownData.endsAt) - new Date();
+  const el = document.getElementById('countdownTimer');
+  if(diff <= 0){ el.textContent = 'Terminé !'; return; }
+  const d = Math.floor(diff/86400000), h = Math.floor(diff%86400000/3600000), m = Math.floor(diff%3600000/60000), s = Math.floor(diff%60000/1000);
+  el.textContent = (d>0?d+'j ':'') + String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+}
+setInterval(renderCountdownTick, 1000);
+
+// ---------- Signalements ----------
+document.getElementById('playerReportBtn').addEventListener('click', () => {
+  document.getElementById('reportReason').value = '';
+  document.getElementById('reportModal').classList.remove('hidden');
+});
+document.getElementById('reportBack').addEventListener('click', () => {
+  document.getElementById('reportModal').classList.add('hidden');
+});
+document.getElementById('reportSubmit').addEventListener('click', async () => {
+  const reason = document.getElementById('reportReason').value.trim();
+  if(!reason){ showToast('⚠ Explique la raison'); return; }
+  const btn = document.getElementById('reportSubmit');
+  btn.disabled = true;
+  const res = await sb('reports', { method:'POST', headers:{'Prefer':'return=minimal'}, body: JSON.stringify({ id:'rp'+Date.now()+Math.floor(Math.random()*1000), reporter: profile.fortnite, reported: viewedPlayer.fortnite, reason, status:'nouveau' }) });
+  btn.disabled = false;
+  if(!res.ok){ showToast('⚠ Échec de l\'envoi'); return; }
+  showToast('✓ Signalement envoyé aux admins');
+  document.getElementById('reportModal').classList.add('hidden');
+});
+document.getElementById('adminGoReports').addEventListener('click', () => {
+  document.getElementById('adminMenuModal').classList.add('hidden');
+  openReports();
+});
+document.getElementById('reportsBack').addEventListener('click', () => {
+  document.getElementById('reportsModal').classList.add('hidden');
+  document.getElementById('adminMenuModal').classList.remove('hidden');
+});
+async function openReports(){
+  const list = document.getElementById('reportsList');
+  list.innerHTML = '<div style="color:var(--muted); font-size:12px;">Chargement...</div>';
+  document.getElementById('reportsModal').classList.remove('hidden');
+  try{
+    const res = await sb('reports?select=*&order=created_at.desc');
+    if(!res.ok){ list.innerHTML = '<div style="color:var(--muted); font-size:12px;">Erreur.</div>'; return; }
+    const rows = await res.json();
+    if(rows.length === 0){ list.innerHTML = '<div style="color:var(--muted); font-size:12px; text-align:center; padding:16px 0;">Aucun signalement.</div>'; return; }
+    list.innerHTML = '';
+    rows.forEach(r => {
+      const item = document.createElement('div');
+      item.className = 'ticket-item';
+      item.innerHTML = `
+        <div class="th"><div class="who">${r.reporter} → ${r.reported}</div><span class="status-badge ${r.status==='traité'?'answered':'open'}">${r.status}</span></div>
+        <div class="ticket-date">${new Date(r.created_at).toLocaleString('fr-FR', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</div>
+        <div style="font-size:12.5px; margin-top:4px;">${r.reason.replace(/</g,'&lt;')}</div>
+      `;
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex; gap:6px; margin-top:8px;';
+      const treatBtn = document.createElement('button');
+      treatBtn.type='button'; treatBtn.textContent = r.status==='traité' ? '✓ Traité' : 'Marquer traité';
+      treatBtn.style.cssText = 'flex:1; border:1px solid var(--line); cursor:pointer; background:' + (r.status==='traité'?'var(--teal)':'var(--panel-2)') + '; color:' + (r.status==='traité'?'#06131a':'var(--muted)') + '; padding:7px; border-radius:8px; font-size:11.5px; font-weight:700;';
+      treatBtn.addEventListener('click', async () => {
+        await sb('reports?id=eq.' + encodeURIComponent(r.id), { method:'PATCH', headers:{'Prefer':'return=minimal'}, body: JSON.stringify({status:'traité'}) });
+        openReports(); updateReportBadge();
+      });
+      const delBtn = document.createElement('button');
+      delBtn.type='button'; delBtn.textContent = 'Supprimer';
+      delBtn.style.cssText = 'border:1px solid var(--line); cursor:pointer; background:var(--panel-2); color:var(--muted); padding:7px 12px; border-radius:8px; font-size:11.5px; font-weight:700;';
+      delBtn.addEventListener('click', async () => {
+        await sb('reports?id=eq.' + encodeURIComponent(r.id), { method:'DELETE' });
+        openReports(); updateReportBadge();
+      });
+      row.appendChild(treatBtn); row.appendChild(delBtn);
+      item.appendChild(row);
+      list.appendChild(item);
+    });
+  }catch(e){ list.innerHTML = '<div style="color:var(--muted); font-size:12px;">Erreur réseau.</div>'; }
+}
+async function updateReportBadge(){
+  if(!isAdmin) return;
+  try{
+    const res = await sb('reports?status=eq.nouveau&select=id');
+    const n = res.ok ? (await res.json()).length : 0;
+    const badge = document.getElementById('reportBadge');
+    badge.textContent = n > 9 ? '9+' : n;
+    badge.style.display = n > 0 ? 'flex' : 'none';
   }catch(e){}
 }
 
@@ -2850,221 +3210,119 @@ const VARIANT_COLORS = {
 };
 
 function downloadMissingImage(){
-  const missingRows = [];
-  SPRITES.forEach(sprite => {
-    sprite.variants.forEach(variant => {
-      if(!owned[keyFor(sprite.id,variant)]) missingRows.push({sprite, variant});
-    });
-  });
   const ownedCount = countOwned();
   const pct = Math.round((ownedCount/TOTAL)*100);
+  const ALL_VARIANTS = ['normal','gold','gummy','galaxy','holofoil','cube'];
+  const COL_LABELS = { normal:'NORMAL', gold:'OR', gummy:'GÉLIFIÉ', galaxy:'GALAXIE', holofoil:'HOLO', cube:'CUBE' };
 
-  // Regroupe par rareté puis par esprit (une carte par esprit, listant les variantes manquantes)
-  const bySprite = {};
-  missingRows.forEach(r => {
-    if(!bySprite[r.sprite.id]) bySprite[r.sprite.id] = { sprite: r.sprite, variants: [] };
-    bySprite[r.sprite.id].variants.push(r.variant);
-  });
-  const groups = {};
-  RARITY_ORDER.forEach(r => groups[r] = []);
-  Object.values(bySprite).forEach(g => groups[g.sprite.rarity].push(g));
-
-  const width = 960;
-  const marginX = 40;
-  const cardW = 280, cardGap = 16;
-  const cols = 3;
-  const cardH = 118;
-  const sectionHeaderH = 46;
-  const sectionGapBottom = 22;
-  const headerH = 210;
-  const footerH = 60;
-
-  let bodyH = 0;
-  RARITY_ORDER.forEach(r => {
-    const items = groups[r];
-    if(items.length === 0) return;
-    const rows = Math.ceil(items.length / cols);
-    bodyH += sectionHeaderH + rows * (cardH + cardGap) + sectionGapBottom;
-  });
-  if(missingRows.length === 0) bodyH = 100;
-
-  const height = headerH + bodyH + footerH;
+  const marginX = 26;
+  const labelW = 150;
+  const colW = 108;
+  const rowH = 84;
+  const headerH = 46;
+  const topH = 128;
+  const footerH = 44;
+  const width = marginX*2 + labelW + colW*ALL_VARIANTS.length;
+  const height = topH + headerH + SPRITES.length*rowH + footerH;
 
   const canvas = document.createElement('canvas');
   canvas.width = width; canvas.height = height;
   const ctx = canvas.getContext('2d');
 
-  // Fond
   const bg = ctx.createLinearGradient(0,0,width,height);
-  bg.addColorStop(0, '#080a13');
-  bg.addColorStop(0.5, '#0d1120');
-  bg.addColorStop(1, '#0a0d18');
-  ctx.fillStyle = bg;
-  ctx.fillRect(0,0,width,height);
+  bg.addColorStop(0, '#141a3a'); bg.addColorStop(1, '#0a0d20');
+  ctx.fillStyle = bg; ctx.fillRect(0,0,width,height);
 
-  // Halos décoratifs
-  const glow1 = ctx.createRadialGradient(width*0.1,-40,10,width*0.1,-40,420);
-  glow1.addColorStop(0,'rgba(139,92,246,0.35)'); glow1.addColorStop(1,'rgba(139,92,246,0)');
-  ctx.fillStyle = glow1; ctx.fillRect(0,0,width,420);
-  const glow2 = ctx.createRadialGradient(width*0.95,20,10,width*0.95,20,380);
-  glow2.addColorStop(0,'rgba(45,226,192,0.22)'); glow2.addColorStop(1,'rgba(45,226,192,0)');
-  ctx.fillStyle = glow2; ctx.fillRect(0,0,width,420);
-
-  // Bandeau supérieur / bordure décorative
-  const topGrad = ctx.createLinearGradient(0,0,width,0);
-  topGrad.addColorStop(0, '#2de2c0'); topGrad.addColorStop(0.5, '#8b5cf6'); topGrad.addColorStop(1, '#ff6fa5');
-  ctx.fillStyle = topGrad; ctx.fillRect(0,0,width,6);
-
-  // Titre
   ctx.fillStyle = '#f2f4ff';
-  ctx.font = '700 38px Rajdhani, sans-serif';
-  ctx.fillText('GRIMOIRE DES ESPRITS', marginX, 66);
+  ctx.font = '700 26px Rajdhani, sans-serif';
+  ctx.fillText('GRIMOIRE DES ESPRITS', marginX, 40);
   ctx.fillStyle = '#8a90b4';
-  ctx.font = '500 15px Inter, sans-serif';
-  ctx.fillText('Liste des esprits manquants · suivi non officiel', marginX, 90);
+  ctx.font = '400 13px Inter, sans-serif';
+  ctx.fillText(ownedCount + ' / ' + TOTAL + ' obtenus (' + pct + '%)', marginX, 60);
 
-  // Carte profil
-  if(profile && profile.fortnite){
-    const pillW = 300, pillH = 44, pillX = width - marginX - pillW, pillY = 30;
-    ctx.fillStyle = 'rgba(255,255,255,0.05)';
-    roundRect(ctx, pillX, pillY, pillW, pillH, 12); ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,0.12)'; ctx.lineWidth = 1;
-    roundRect(ctx, pillX, pillY, pillW, pillH, 12); ctx.stroke();
-    const avGrad = ctx.createLinearGradient(pillX+10,0,pillX+40,0);
-    avGrad.addColorStop(0,'#2de2c0'); avGrad.addColorStop(1,'#8b5cf6');
-    ctx.fillStyle = avGrad;
-    ctx.beginPath(); ctx.arc(pillX+27, pillY+22, 15, 0, Math.PI*2); ctx.fill();
-    ctx.fillStyle = '#06131a';
-    ctx.font = '700 13px Rajdhani, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(profile.fortnite.slice(0,2).toUpperCase(), pillX+27, pillY+27);
-    ctx.textAlign = 'left';
-    ctx.fillStyle = '#f2f4ff';
-    ctx.font = '700 14px Rajdhani, sans-serif';
-    ctx.fillText(profile.fortnite, pillX+50, pillY+19);
-    ctx.fillStyle = '#8a90b4';
-    ctx.font = '400 11.5px Inter, sans-serif';
-    ctx.fillText('Discord: ' + (profile.discord || '—'), pillX+50, pillY+34);
-  }
-
-  // Barre de progression stylée
-  const barX = marginX, barY = 118, barW = width - marginX*2, barH = 16;
-  ctx.fillStyle = 'rgba(255,255,255,0.06)';
-  roundRect(ctx, barX, barY, barW, barH, 8); ctx.fill();
-  const fillGrad = ctx.createLinearGradient(barX,0,barX+barW,0);
-  fillGrad.addColorStop(0, '#2de2c0'); fillGrad.addColorStop(1, '#8b5cf6');
-  ctx.fillStyle = fillGrad;
-  roundRect(ctx, barX, barY, Math.max(barW*(pct/100), pct>0?14:0), barH, 8); ctx.fill();
-  ctx.fillStyle = '#f2f4ff';
-  ctx.font = '700 18px Rajdhani, sans-serif';
-  ctx.fillText(ownedCount + ' / ' + TOTAL + ' esprits obtenus  ·  ' + pct + '%', barX, barY + 42);
-
-  ctx.strokeStyle = 'rgba(255,255,255,0.08)';
-  ctx.beginPath(); ctx.moveTo(marginX, headerH-20); ctx.lineTo(width-marginX, headerH-20); ctx.stroke();
-
-  if(missingRows.length === 0){
-    ctx.fillStyle = '#2de2c0';
-    ctx.font = '700 24px Rajdhani, sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText('🎉 Collection complète — plus aucun esprit manquant !', width/2, headerH + 50);
-    ctx.textAlign = 'left';
-  } else {
-    let y = headerH;
-    RARITY_ORDER.forEach(rk => {
-      const items = groups[rk];
-      if(items.length === 0) return;
-      const color = RARITY_HEX[rk];
-
-      // En-tête de section
-      ctx.fillStyle = color;
-      roundRect(ctx, marginX, y+10, 5, 22, 3); ctx.fill();
-      ctx.fillStyle = '#f2f4ff';
-      ctx.font = '700 19px Rajdhani, sans-serif';
-      ctx.fillText(RARITY_LABEL[rk].toUpperCase(), marginX + 16, y + 27);
-      ctx.fillStyle = hexToRgba(color, 0.85);
-      ctx.font = '700 12px Inter, sans-serif';
-      const countLabel = items.length + ' esprit' + (items.length>1?'s':'');
-      ctx.fillText(countLabel, marginX + 16 + ctx.measureText(RARITY_LABEL[rk].toUpperCase()).width + 12, y + 26);
-      y += sectionHeaderH;
-
-      items.forEach((g, i) => {
-        const col = i % cols, row = Math.floor(i / cols);
-        const cx = marginX + col * (cardW + cardGap);
-        const cy = y + row * (cardH + cardGap);
-
-        // Carte
-        const cardGrad = ctx.createLinearGradient(cx, cy, cx, cy+cardH);
-        cardGrad.addColorStop(0, 'rgba(255,255,255,0.055)');
-        cardGrad.addColorStop(1, 'rgba(255,255,255,0.02)');
-        ctx.fillStyle = cardGrad;
-        roundRect(ctx, cx, cy, cardW, cardH, 14); ctx.fill();
-        ctx.strokeStyle = hexToRgba(color, 0.45);
-        ctx.lineWidth = 1.4;
-        roundRect(ctx, cx, cy, cardW, cardH, 14); ctx.stroke();
-
-        // Lueur rareté en haut de carte
-        const topBar = ctx.createLinearGradient(cx,0,cx+cardW,0);
-        topBar.addColorStop(0, hexToRgba(color,0)); topBar.addColorStop(0.5, hexToRgba(color,0.9)); topBar.addColorStop(1, hexToRgba(color,0));
-        ctx.fillStyle = topBar;
-        ctx.fillRect(cx+14, cy, cardW-28, 3);
-
-        // Icône
-        const iconR = 24;
-        const iconCx = cx + 34, iconCy = cy + 40;
-        const iconGrad = ctx.createRadialGradient(iconCx, iconCy, 2, iconCx, iconCy, iconR);
-        iconGrad.addColorStop(0, hexToRgba(color,0.35)); iconGrad.addColorStop(1, hexToRgba(color,0.05));
-        ctx.fillStyle = iconGrad;
-        ctx.beginPath(); ctx.arc(iconCx, iconCy, iconR, 0, Math.PI*2); ctx.fill();
-        ctx.strokeStyle = hexToRgba(color,0.5); ctx.lineWidth = 1.2;
-        ctx.beginPath(); ctx.arc(iconCx, iconCy, iconR, 0, Math.PI*2); ctx.stroke();
-        ctx.font = '24px sans-serif';
-        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-        ctx.fillText(g.sprite.emoji, iconCx, iconCy+1);
-        ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
-
-        // Nom
-        ctx.fillStyle = '#f2f4ff';
-        ctx.font = '700 15px Rajdhani, sans-serif';
-        const name = g.sprite.name.length > 20 ? g.sprite.name.slice(0,19)+'…' : g.sprite.name;
-        ctx.fillText(name, cx + 66, cy + 33);
-
-        // Badges variantes manquantes
-        let vx = cx + 66, vy = cy + 46;
-        const maxRight = cx + cardW - 12;
-        g.variants.forEach(variant => {
-          const label = VARIANT_LABELS[variant];
-          const vcolors = VARIANT_COLORS[variant];
-          ctx.font = '700 10.5px Inter, sans-serif';
-          const w = ctx.measureText(label).width + 16;
-          if(vx + w > maxRight){ vx = cx + 66; vy += 22; }
-          const vgrad = ctx.createLinearGradient(vx,0,vx+w,0);
-          vgrad.addColorStop(0, vcolors[0]); vgrad.addColorStop(1, vcolors[1]);
-          ctx.fillStyle = vgrad;
-          roundRect(ctx, vx, vy, w, 18, 6); ctx.fill();
-          ctx.fillStyle = (variant==='gold'||variant==='holofoil'||variant==='normal') ? '#10131f' : '#1a0c14';
-          ctx.fillStyle = variant==='normal' ? '#e8eaf6' : '#1a0c14';
-          ctx.fillText(label, vx+8, vy+13);
-          vx += w + 6;
-        });
-      });
-      const rows = Math.ceil(items.length / cols);
-      y += rows * (cardH + cardGap) + sectionGapBottom;
-    });
-  }
-
-  // Pied de page
+  const barX = marginX, barY = 74, barW = width - marginX*2, barH = 10;
   ctx.fillStyle = 'rgba(255,255,255,0.08)';
-  ctx.fillRect(marginX, height-footerH+10, width-marginX*2, 1);
-  ctx.fillStyle = '#565d80';
-  ctx.font = '400 12px Inter, sans-serif';
-  ctx.fillText('Non affilié à Epic Games. Généré depuis le Grimoire des Esprits.', marginX, height-22);
-  ctx.textAlign = 'right';
-  ctx.fillText(new Date().toLocaleDateString('fr-FR'), width-marginX, height-22);
+  roundRect(ctx, barX, barY, barW, barH, 5); ctx.fill();
+  const fillGrad = ctx.createLinearGradient(barX,0,barX+barW,0);
+  fillGrad.addColorStop(0,'#2de2c0'); fillGrad.addColorStop(1,'#8b5cf6');
+  ctx.fillStyle = fillGrad;
+  roundRect(ctx, barX, barY, Math.max(barW*(pct/100), pct>0?10:0), barH, 5); ctx.fill();
+
+  // En-têtes de colonnes
+  const headerY = topH;
+  ctx.font = '700 11px Inter, sans-serif';
+  ALL_VARIANTS.forEach((v,i) => {
+    const cx = marginX + labelW + i*colW + colW/2;
+    ctx.fillStyle = '#c9cfe8';
+    ctx.textAlign = 'center';
+    ctx.fillText(COL_LABELS[v], cx, headerY + 20);
+  });
   ctx.textAlign = 'left';
+
+  SPRITES.forEach((sprite, rowIdx) => {
+    const rowY = topH + headerH + rowIdx*rowH;
+    if(rowIdx % 2 === 0){ ctx.fillStyle = 'rgba(255,255,255,0.025)'; ctx.fillRect(marginX, rowY, width-marginX*2, rowH); }
+
+    // Nom + pastille rareté
+    const rColor = RARITY_HEX[sprite.rarity];
+    ctx.fillStyle = rColor;
+    ctx.beginPath(); ctx.arc(marginX+8, rowY+rowH/2, 5, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#e8eaf6';
+    ctx.font = '700 13px Rajdhani, sans-serif';
+    const nm = sprite.name.replace('Esprit ',"").replace("de l'","").replace('du ','').replace('de la ','');
+    ctx.fillText(nm.length > 15 ? nm.slice(0,14)+'…' : nm, marginX+20, rowY+rowH/2+5);
+
+    ALL_VARIANTS.forEach((variant, colIdx) => {
+      const cx = marginX + labelW + colIdx*colW + colW/2;
+      const cy = rowY + rowH/2;
+      const exists = sprite.variants.includes(variant);
+      if(!exists){
+        ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+        ctx.beginPath(); ctx.moveTo(cx-14, cy); ctx.lineTo(cx+14, cy); ctx.stroke();
+        return;
+      }
+      const isOwned = !!owned[keyFor(sprite.id, variant)];
+      const vColors = VARIANT_COLORS[variant];
+      const r = 22;
+      if(isOwned){
+        const grad = ctx.createRadialGradient(cx,cy,2,cx,cy,r);
+        grad.addColorStop(0, vColors[0]); grad.addColorStop(1, vColors[1]);
+        ctx.fillStyle = grad;
+      } else {
+        ctx.fillStyle = 'rgba(255,255,255,0.05)';
+      }
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.fill();
+      ctx.strokeStyle = isOwned ? hexToRgba(vColors[0],0.9) : 'rgba(255,255,255,0.15)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI*2); ctx.stroke();
+
+      ctx.font = (isOwned? '22px' : '20px') + ' sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.globalAlpha = isOwned ? 1 : 0.35;
+      ctx.fillStyle = '#fff';
+      ctx.fillText(sprite.emoji, cx, cy+1);
+      ctx.globalAlpha = 1;
+      ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+
+      if(isOwned){
+        ctx.fillStyle = '#2de2c0';
+        ctx.beginPath(); ctx.arc(cx+16, cy-16, 8, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = '#06131a';
+        ctx.font = '700 11px sans-serif';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('✓', cx+16, cy-15);
+        ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+      }
+    });
+  });
+
+  ctx.fillStyle = '#565d80';
+  ctx.font = '400 11px Inter, sans-serif';
+  ctx.fillText('Non affilié à Epic Games. Généré depuis le Grimoire des Esprits — ' + new Date().toLocaleDateString('fr-FR'), marginX, height-16);
 
   try{
     const link = document.createElement('a');
-    link.download = 'esprits-manquants.png';
+    link.download = 'esprits-collection.png';
     link.href = canvas.toDataURL('image/png');
     document.body.appendChild(link); link.click(); document.body.removeChild(link);
     showToast('✓ Image téléchargée');
@@ -3096,6 +3354,8 @@ setInterval(async () => {
   // Annonce : toujours à jour
   loadAnnouncement();
   loadTheme();
+  if(isAdmin){ updateTicketBadge(); }
+  checkScheduled();
 
   // Maintenance : si activée entre-temps et qu'on n'est pas admin, on bloque immédiatement
   const adminCodeOpen = !document.getElementById('adminCodeModal').classList.contains('hidden');
@@ -3127,6 +3387,8 @@ setInterval(async () => {
     upsertProfile(profile.fortnite, profile.discord);
     // Messages perso / effets envoyés par l'admin
     checkScreenEvents();
+    // Badge messages non lus + rafraîchissement live si la fenêtre Messages est ouverte
+    if(messagesModalOpen){ openMyTickets(true); } else { updateMessagesBadge(); }
   } else if(bannedFortnite){
     // On est actuellement bloqué par un ban : on vérifie s'il vient d'être levé
     const stillBanned = await checkBan(bannedFortnite);
