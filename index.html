@@ -933,6 +933,15 @@
 </div>
 
 <!-- Overlays d'effets écran (côté joueur) -->
+<!-- Aperçu de l'image de collection -->
+<div class="modal-backdrop hidden" id="imagePreviewModal" style="padding:16px;">
+  <div style="position:relative; max-width:100%; max-height:100%;">
+    <button id="imagePreviewClose" type="button" style="position:absolute; top:-14px; right:-14px; width:32px; height:32px; border-radius:50%; border:none; background:#ff5a78; color:#fff; font-size:16px; font-weight:800; cursor:pointer; box-shadow:0 4px 12px rgba(0,0,0,0.4); z-index:2;">✕</button>
+    <img id="imagePreviewImg" src="" style="max-width:90vw; max-height:85vh; border-radius:14px; box-shadow:0 10px 40px rgba(0,0,0,0.5); display:block;">
+    <a id="imagePreviewDownload" download="esprits-collection.png" style="display:block; text-align:center; margin-top:12px; color:var(--teal); font-weight:700; font-size:13px; text-decoration:underline;">⬇ Télécharger l'image</a>
+  </div>
+</div>
+
 <div id="personalMsgOverlay">
   <div class="box">
     <h2>📩 Message de l'admin</h2>
@@ -2499,6 +2508,11 @@ document.getElementById('maintenanceOff').addEventListener('click', async () => 
   const btn = document.getElementById('maintenanceOff');
   btn.disabled = true;
   const ok = await setMaintenance('off');
+  // Efface aussi toute programmation en attente pour qu'elle ne redéclenche pas la maintenance plus tard
+  await sb('settings?on_conflict=key', {
+    method:'POST', headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},
+    body: JSON.stringify({ key:'scheduled_maintenance', value:'' })
+  }).catch(()=>{});
   btn.disabled = false;
   if(!ok){ showToast('⚠ Échec de la désactivation'); return; }
   showToast('✓ Maintenance désactivée');
@@ -3321,15 +3335,17 @@ function downloadMissingImage(){
   ctx.fillText('Non affilié à Epic Games. Généré depuis le Grimoire des Esprits — ' + new Date().toLocaleDateString('fr-FR'), marginX, height-16);
 
   try{
-    const link = document.createElement('a');
-    link.download = 'esprits-collection.png';
-    link.href = canvas.toDataURL('image/png');
-    document.body.appendChild(link); link.click(); document.body.removeChild(link);
-    showToast('✓ Image téléchargée');
+    const dataUrl = canvas.toDataURL('image/png');
+    document.getElementById('imagePreviewImg').src = dataUrl;
+    document.getElementById('imagePreviewDownload').href = dataUrl;
+    document.getElementById('imagePreviewModal').classList.remove('hidden');
   }catch(e){
-    showToast('⚠ Échec du téléchargement');
+    showToast('⚠ Échec de la génération de l\'image');
   }
 }
+document.getElementById('imagePreviewClose').addEventListener('click', () => {
+  document.getElementById('imagePreviewModal').classList.add('hidden');
+});
 document.getElementById('downloadBtn').addEventListener('click', downloadMissingImage);
 
 updateProfileChip();
